@@ -1,8 +1,5 @@
-import { Text, View } from 'react-native';
-import type { LucideIcon } from 'lucide-react-native';
+import { brand, Card, EmptyState, ScreenHeader, type IconComponent } from '@tendshare/ui';
 
-import { useTheme } from '../theme';
-import { PlaceholderCard } from './PlaceholderCard';
 import { Screen } from './Screen';
 
 export interface PlaceholderScreenProps {
@@ -10,17 +7,19 @@ export interface PlaceholderScreenProps {
   title: string;
   /** One calm sentence about what this tab will hold. */
   subtitle: string;
-  icon: LucideIcon;
-  /** Card heading. */
+  icon: IconComponent;
+  /** Empty-state headline. */
   placeholderTitle: string;
-  /** Card body copy. */
+  /** Empty-state body: one line, plain. */
   placeholderBody: string;
   testID: string;
 }
 
 /**
- * Stand-in body for a tab whose feature has not been built yet. Every tab in
- * the shell renders exactly one of these — no feature logic lives here.
+ * What a tab shows before its feature exists.
+ *
+ * Built entirely from design-system pieces — a header and one empty state in a
+ * card — so the shell already looks like the product rather than like scaffolding.
  */
 export function PlaceholderScreen({
   title,
@@ -30,36 +29,22 @@ export function PlaceholderScreen({
   placeholderBody,
   testID,
 }: PlaceholderScreenProps) {
-  const theme = useTheme();
-
   return (
     <Screen>
-      <View style={{ gap: theme.spacing.sm, marginBottom: theme.spacing.xl }}>
-        <Text
-          style={[
-            theme.typography.caption,
-            { color: theme.colors.textMuted, textTransform: 'uppercase', letterSpacing: 1.1 },
-          ]}
-        >
-          Tendshare
-        </Text>
-        <Text
-          style={[theme.typography.display, { color: theme.colors.text }]}
-          accessibilityRole="header"
-          testID={`${testID}-heading`}
-        >
-          {title}
-        </Text>
-        <Text style={[theme.typography.body, { color: theme.colors.textMuted }]}>{subtitle}</Text>
-      </View>
-
-      <PlaceholderCard
-        icon={icon}
-        title={placeholderTitle}
-        body={placeholderBody}
-        note="App shell · Phase 1"
-        testID={`${testID}-placeholder`}
+      <ScreenHeader
+        eyebrow={brand.name}
+        subtitle={subtitle}
+        title={title}
+        titleTestID={`${testID}-heading`}
       />
+      <Card padding="sm">
+        <EmptyState
+          body={placeholderBody}
+          headline={placeholderTitle}
+          icon={icon}
+          testID={`${testID}-placeholder`}
+        />
+      </Card>
     </Screen>
   );
 }
