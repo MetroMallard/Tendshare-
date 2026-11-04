@@ -8,6 +8,24 @@ All notable changes to Tendshare are recorded here. The format follows
 
 ### Added
 
+- **The database.** Four forward-only migrations in `supabase/migrations/` create the
+  identity and authorisation core: `profiles` (one row per auth user, created by a
+  signup trigger), `circles`, `circle_members` (owner / family member / view-only /
+  visiting helper, with the columns a helper code will need), `care_recipients`, and
+  an append-only `audit_log`. `plan_limits` holds the plan limits and prices as
+  config, so no number is hardcoded in SQL or in a policy. Row Level Security is
+  enabled and forced on every table; membership questions go through `security
+definer` helpers with a pinned `search_path`, which is what keeps the
+  `circles`/`circle_members` policies from recursing. The plan limit is enforced by
+  a trigger that reads the config table.
+- **An RLS test suite that bites.** `pnpm test:rls` runs against the hosted project
+  as real signed-in users (anon key plus real JWTs; the service role only creates
+  and deletes users in setup and teardown) and skips cleanly without credentials,
+  so CI stays secret-free. `pnpm test:rls:local` proves the same 61 boundaries
+  against a scratch Postgres with no hosted project at all.
+- **`pnpm db:migrate`**, which applies the migrations once each and records what it
+  has run.
+
 - **The monorepo.** A Turborepo + pnpm workspace with one app (`apps/app`) and one
   shared configuration package (`packages/config`). `packages/ui` and
   `packages/types` are reserved folders with a README each and no code, so the

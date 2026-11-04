@@ -109,29 +109,28 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 
 **One task per pull request. Each task must be small enough to finish inside a single session. Every merge gets a phone-sized (390px) QA check before it is reported done.**
 
-| # | Task | PR | State |
-| --- | --- | --- | --- |
-| 0 | `PROJECT_BRIEF.md` at the repo root, kept current | — | ✅ Done |
-| 1 | Monorepo (Turborepo + pnpm), app shell with 5 tabs, CI, README, CHANGELOG | Phase 1 | ✅ Done — PR #1 |
-| 2 | Design system package: brand tokens (light + dark), one brand config file (name, tagline, colours), core components, hidden component gallery | Phase 1 | ✅ Done — PR #2 |
-| 3 | Supabase schema, migrations, Row Level Security policies + RLS tests per table | Phase 1 | 🚧 In progress |
-| 4 | Auth: **email code + Google now**; Sign in with Apple deferred until the owner's Apple Developer account exists — **must ship before App Store submission** | Phase 1 | ⬜ Not started |
-| 5 | Onboarding, 3 screens: your name and photo → who you're caring for → invite family | Phase 1 | ⬜ Not started |
-| 6 | Care circles, the four roles, and the circle switcher | Phase 1 | ⬜ Not started |
-| 7 | Person profile: basics, doctors and pharmacies, allergies and conditions as typed, insurance cards | Phase 2 | ⬜ Not started |
-| 8 | Med list, Today check-off with who confirmed and when, refill reminders, change history | Phase 2 | ⬜ Not started |
-| 9 | Calendar and coverage: appointment owners, "I'll take it", swap requests, visit notes, phone calendar sync | Phase 2 | ⬜ Not started |
-| 10 | Updates feed: posts, photos, reactions, after-appointment notes, weekly summary | Phase 2 | ⬜ Not started |
-| 11 | Document vault: folders, any file type, camera scan to PDF, owner-only locked folders, expiry reminders | Phase 2 | ⬜ Not started |
-| 12 | Cost split: expenses with receipts, three split modes, balances, settle-up, monthly PDF/CSV export | Phase 3 | ⬜ Not started |
-| 13 | Fairness view: visits, rides, expenses and hours per member, gently presented | Phase 3 | ⬜ Not started |
-| 14 | Emergency sheet: fully offline view, one-tap PDF that prints cleanly on Letter and A4, expiring share link | Phase 3 | ⬜ Not started |
-| 15 | Invites by link/code/text with deep links; notifications and email with toggles; subscriptions and paywall | Phase 4 | ⬜ Not started |
+| #   | Task                                                                                                                                                        | PR      | State           |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------- |
+| 0   | `PROJECT_BRIEF.md` at the repo root, kept current                                                                                                           | —       | ✅ Done         |
+| 1   | Monorepo (Turborepo + pnpm), app shell with 5 tabs, CI, README, CHANGELOG                                                                                   | Phase 1 | ✅ Done — PR #1 |
+| 2   | Design system package: brand tokens (light + dark), one brand config file (name, tagline, colours), core components, hidden component gallery               | Phase 1 | ✅ Done — PR #2 |
+| 3   | Supabase schema, migrations, Row Level Security policies + RLS tests per table                                                                              | Phase 1 | 🚧 In progress  |
+| 4   | Auth: **email code + Google now**; Sign in with Apple deferred until the owner's Apple Developer account exists — **must ship before App Store submission** | Phase 1 | ⬜ Not started  |
+| 5   | Onboarding, 3 screens: your name and photo → who you're caring for → invite family                                                                          | Phase 1 | ⬜ Not started  |
+| 6   | Care circles, the four roles, and the circle switcher                                                                                                       | Phase 1 | ⬜ Not started  |
+| 7   | Person profile: basics, doctors and pharmacies, allergies and conditions as typed, insurance cards                                                          | Phase 2 | ⬜ Not started  |
+| 8   | Med list, Today check-off with who confirmed and when, refill reminders, change history                                                                     | Phase 2 | ⬜ Not started  |
+| 9   | Calendar and coverage: appointment owners, "I'll take it", swap requests, visit notes, phone calendar sync                                                  | Phase 2 | ⬜ Not started  |
+| 10  | Updates feed: posts, photos, reactions, after-appointment notes, weekly summary                                                                             | Phase 2 | ⬜ Not started  |
+| 11  | Document vault: folders, any file type, camera scan to PDF, owner-only locked folders, expiry reminders                                                     | Phase 2 | ⬜ Not started  |
+| 12  | Cost split: expenses with receipts, three split modes, balances, settle-up, monthly PDF/CSV export                                                          | Phase 3 | ⬜ Not started  |
+| 13  | Fairness view: visits, rides, expenses and hours per member, gently presented                                                                               | Phase 3 | ⬜ Not started  |
+| 14  | Emergency sheet: fully offline view, one-tap PDF that prints cleanly on Letter and A4, expiring share link                                                  | Phase 3 | ⬜ Not started  |
+| 15  | Invites by link/code/text with deep links; notifications and email with toggles; subscriptions and paywall                                                  | Phase 4 | ⬜ Not started  |
 
 **Launch (Phase 5) follows task 15:** privacy and security pass (RLS and storage policy tests, audit log), accessibility audit, performance budget (cold start under 2 s), Maestro end-to-end tests, demo seed data, privacy policy and terms, App Store and Play Store metadata, EAS builds, and the landing page with pricing and a waitlist.
 
 ### Decisions log
-
 
 - **2026-10-29** — Product renamed from the earlier "Kinwell" prototype to **Tendshare**. The existing navy/teal design tokens, component library and onboarding patterns carry over into the shared design system package.
 - **2026-10-29** — Web is served by this platform as the live surface; iOS/Android store builds run on the owner's EAS account.
