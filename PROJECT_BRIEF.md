@@ -112,8 +112,8 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 | # | Task | PR | State |
 | --- | --- | --- | --- |
 | 0 | `PROJECT_BRIEF.md` at the repo root, kept current | — | ✅ Done |
-| 1 | Monorepo (Turborepo + pnpm), app shell with 5 tabs, CI, README, CHANGELOG | Phase 1 | 🚧 In progress |
-| 2 | Design system package: brand tokens (light + dark), one brand config file (name, tagline, colours), core components, hidden component gallery | Phase 1 | ⬜ Not started |
+| 1 | Monorepo (Turborepo + pnpm), app shell with 5 tabs, CI, README, CHANGELOG | Phase 1 | ✅ Done — PR #1 |
+| 2 | Design system package: brand tokens (light + dark), one brand config file (name, tagline, colours), core components, hidden component gallery | Phase 1 | ✅ Done — PR #2 |
 | 3 | Supabase schema, migrations, Row Level Security policies + RLS tests per table | Phase 1 | ⬜ Not started |
 | 4 | Auth: Sign in with Apple, Google and email code | Phase 1 | ⬜ Not started |
 | 5 | Onboarding, 3 screens: your name and photo → who you're caring for → invite family | Phase 1 | ⬜ Not started |
@@ -136,3 +136,6 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 - **2026-10-29** — Product renamed from the earlier "Kinwell" prototype to **Tendshare**. The existing navy/teal design tokens, component library and onboarding patterns carry over into the shared design system package.
 - **2026-10-29** — Web is served by this platform as the live surface; iOS/Android store builds run on the owner's EAS account.
 - **2026-10-29** — Work is broken into numbered tasks 0–15, one pull request each, sized to one session. Every merge is QA-checked at 390px before it is reported done.
+- **2026-11-04** — Brand background is the warm **`#F7F3EC`** (owner's call). **System font on iOS/Android; Inter on web** — no bundled font on device.
+- **2026-11-04** — Product name, tagline and colours live in `packages/ui/src/brand.ts`. Tagline: "Care for someone you love, shared with your family."
+- **2026-11-04** — PRs merge only on **green CI plus a completed 390px phone QA**. No merge on local checks alone from Task 2 onward.
