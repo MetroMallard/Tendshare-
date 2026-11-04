@@ -1,6 +1,6 @@
 import { Menu } from 'lucide-react-native';
 
-import { Card, EmptyState, ScreenHeader } from '@tendshare/ui';
+import { brand, Card, EmptyState, ScreenHeader } from '@tendshare/ui';
 
 import { HiddenEntry } from '../../src/components/HiddenEntry';
 import { Screen } from '../../src/components/Screen';
@@ -10,7 +10,7 @@ export default function MoreScreen() {
   return (
     <Screen>
       <ScreenHeader
-        eyebrow="Tendshare"
+        eyebrow={brand.name}
         subtitle="Your circle, documents and settings."
         title="More"
         titleTestID="screen-more-heading"

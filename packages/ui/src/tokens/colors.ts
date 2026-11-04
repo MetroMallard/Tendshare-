@@ -5,6 +5,12 @@
  * raw hex value. A component asks for `colors.textSecondary`; this file decides
  * which hex that is today, in light and in dark.
  *
+ * The one exception is the brand itself: the navy and teal families are declared
+ * in `../brand.ts`, because a rename may come with a recolour, and both belong in
+ * one place. They are mapped onto the semantic tokens below, so the components
+ * still never see `brand.palette` — and `brand.test.ts` fails if the two drift
+ * apart.
+ *
  * Two rules held across both schemes:
  *   1. Backgrounds are warm, not cool grey-white. The care audience reads this
  *      in a kitchen at 7am and a hospital corridor at 9pm; a warm paper tone is
@@ -15,6 +21,8 @@
  * Contrast is not a comment here: `theme.test.ts` computes WCAG ratios for every
  * pair listed in `contrastPairs` and fails the build if one drops below AA.
  */
+
+import { brand } from '../brand';
 
 export type ColorScheme = 'light' | 'dark';
 
@@ -76,6 +84,10 @@ export interface ThemeColors {
   readonly focus: string;
 }
 
+/** The brand families, read once so the token maps below stay one line each. */
+const lightBrand = brand.palette.light;
+const darkBrand = brand.palette.dark;
+
 export const lightColors: ThemeColors = {
   bg: '#F7F3EC',
   surface: '#FFFDF9',
@@ -91,17 +103,17 @@ export const lightColors: ThemeColors = {
   textTertiary: '#5E6A76',
   textInverse: '#FFFFFF',
 
-  brand: '#10456B',
-  brandPressed: '#0B3454',
-  brandFg: '#FFFFFF',
-  brandSoft: '#E6EEF5',
-  brandSoftFg: '#0D3A5B',
+  brand: lightBrand.primary,
+  brandPressed: lightBrand.primaryPressed,
+  brandFg: lightBrand.primaryFg,
+  brandSoft: lightBrand.primarySoft,
+  brandSoftFg: lightBrand.primarySoftFg,
 
-  accent: '#0E7B75',
-  accentPressed: '#0A6560',
-  accentFg: '#FFFFFF',
-  accentSoft: '#DFF2EF',
-  accentSoftFg: '#0A625C',
+  accent: lightBrand.secondary,
+  accentPressed: lightBrand.secondaryPressed,
+  accentFg: lightBrand.secondaryFg,
+  accentSoft: lightBrand.secondarySoft,
+  accentSoftFg: lightBrand.secondarySoftFg,
 
   success: '#15794A',
   successSoft: '#E2F2E8',
@@ -134,17 +146,17 @@ export const darkColors: ThemeColors = {
   textTertiary: '#9AA8B2',
   textInverse: '#06131E',
 
-  brand: '#7FB9E2',
-  brandPressed: '#9CCBEA',
-  brandFg: '#06131E',
-  brandSoft: '#17303F',
-  brandSoftFg: '#A9D2F0',
+  brand: darkBrand.primary,
+  brandPressed: darkBrand.primaryPressed,
+  brandFg: darkBrand.primaryFg,
+  brandSoft: darkBrand.primarySoft,
+  brandSoftFg: darkBrand.primarySoftFg,
 
-  accent: '#4CC0B9',
-  accentPressed: '#6FD0CA',
-  accentFg: '#04211F',
-  accentSoft: '#10312E',
-  accentSoftFg: '#7FD8D2',
+  accent: darkBrand.secondary,
+  accentPressed: darkBrand.secondaryPressed,
+  accentFg: darkBrand.secondaryFg,
+  accentSoft: darkBrand.secondarySoft,
+  accentSoftFg: darkBrand.secondarySoftFg,
 
   success: '#4ECF8C',
   successSoft: '#102C20',

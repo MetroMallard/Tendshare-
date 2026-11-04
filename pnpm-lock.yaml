@@ -302,6 +302,9 @@ importers:
 
   packages/ui:
     devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.5
       '@types/react':
         specifier: ~19.3.0
         version: 19.3.0

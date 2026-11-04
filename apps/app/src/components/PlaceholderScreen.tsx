@@ -1,4 +1,4 @@
-import { Card, EmptyState, ScreenHeader, type IconComponent } from '@tendshare/ui';
+import { brand, Card, EmptyState, ScreenHeader, type IconComponent } from '@tendshare/ui';
 
 import { Screen } from './Screen';
 
@@ -32,7 +32,7 @@ export function PlaceholderScreen({
   return (
     <Screen>
       <ScreenHeader
-        eyebrow="Tendshare"
+        eyebrow={brand.name}
         subtitle={subtitle}
         title={title}
         titleTestID={`${testID}-heading`}

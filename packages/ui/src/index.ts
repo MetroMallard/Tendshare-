@@ -7,6 +7,9 @@
  * screen ever holds a hex value, a font size or a magic padding.
  */
 
+// Brand: the product name, tagline and brand palette — the one source.
+export * from './brand';
+
 // Theme: tokens + provider.
 export * from './tokens';
 export * from './ThemeProvider';

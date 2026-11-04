@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState, type PropsWithChildren } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { brand } from './brand';
 import type { ColorScheme } from './tokens/colors';
 import { getTheme, type Theme } from './tokens/theme';
 
@@ -49,7 +50,7 @@ function useThemeContext(): ThemeContextValue {
 
   if (value === null) {
     throw new Error(
-      'Tendshare components must be rendered inside <ThemeProvider> from @tendshare/ui.',
+      `${brand.name} components must be rendered inside <ThemeProvider> from @tendshare/ui.`,
     );
   }
 

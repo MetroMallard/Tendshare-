@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useRef } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Text, useTheme } from '@tendshare/ui';
+import { brand, Text, useTheme } from '@tendshare/ui';
 
 const APP_VERSION = '0.1.0';
 
@@ -24,7 +24,7 @@ export function HiddenEntry() {
 
   return (
     <Pressable
-      accessibilityLabel={`Tendshare version ${APP_VERSION}`}
+      accessibilityLabel={`${brand.name} version ${APP_VERSION}`}
       accessibilityRole="text"
       onPress={() => {
         const now = Date.now();
@@ -45,7 +45,7 @@ export function HiddenEntry() {
     >
       <View style={{ alignItems: 'center' }}>
         <Text align="center" tone="tertiary" variant="caption">
-          Tendshare {APP_VERSION}
+          {brand.name} {APP_VERSION}
         </Text>
         <Text align="center" tone="tertiary" variant="caption">
           Made with care for families.
