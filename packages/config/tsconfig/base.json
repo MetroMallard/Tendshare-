@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Tendshare base",
+  "compilerOptions": {
+    /* Strictness. TypeScript strict is the floor, these close the rest of
+       the holes: `noUncheckedIndexedAccess` catches array and record reads
+       that may be `undefined`, and unused locals/params stay errors so dead
+       code cannot accumulate. */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnreachableCode": false,
+    "useUnknownInCatchVariables": true,
+
+    /* Module behaviour. `bundler` resolution matches Metro and Vite, which
+       are the only bundlers in this repo. */
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2023",
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  }
+}

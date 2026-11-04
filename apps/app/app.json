@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Tendshare",
+    "slug": "tendshare",
+    "version": "0.1.0",
+    "scheme": "tendshare",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tendshare.app"
+    },
+    "android": {
+      "package": "com.tendshare.app",
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "name": "Tendshare",
+      "shortName": "Tendshare",
+      "lang": "en",
+      "themeColor": "#12395B",
+      "backgroundColor": "#F7F6F3"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
