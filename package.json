@@ -1,0 +1,34 @@
+{
+  "name": "tendshare",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tendshare — the calm, shared home for a family caring for someone they love.",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:web": "pnpm --filter @tendshare/app dev:web",
+    "ios": "pnpm --filter @tendshare/app ios",
+    "android": "pnpm --filter @tendshare/app android",
+    "typecheck": "tsc --noEmit -p tsconfig.json && turbo run typecheck",
+    "lint": "turbo run lint && eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@tendshare/config": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  }
+}

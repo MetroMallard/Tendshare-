@@ -1,0 +1,18 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# One version of every shared tool, set in one place. Packages depend on
+# `catalog:` and get the version pinned here.
+catalog:
+  "@eslint/js": ^10.0.1
+  "@types/node": ^22.18.0
+  eslint: ^10.14.0
+  prettier: ^3.9.10
+  turbo: ^2.11.10
+  typescript: ~6.0.3
+  typescript-eslint: ^8.72.1
+  vitest: ^5.1.0
+
+onlyBuiltDependencies:
+  - esbuild

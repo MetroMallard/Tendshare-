@@ -1,0 +1,23 @@
+{
+  "name": "@tendshare/config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared TypeScript, ESLint and Prettier configuration for the Tendshare monorepo.",
+  "type": "module",
+  "exports": {
+    "./eslint": "./eslint.config.mjs",
+    "./prettier": "./prettier.config.mjs",
+    "./tsconfig/base.json": "./tsconfig/base.json"
+  },
+  "dependencies": {
+    "@eslint/js": "catalog:",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.5.0",
+    "typescript-eslint": "catalog:"
+  },
+  "peerDependencies": {
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  }
+}
