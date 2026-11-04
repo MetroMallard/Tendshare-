@@ -1,10 +1,9 @@
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { View, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { getTheme } from '../src/theme/tokens';
-import { ThemeProvider, useTheme } from '../src/theme';
+import { Button, Card, Text, ThemeProvider, useTheme } from '@tendshare/ui';
 
 function RootNavigator() {
   const theme = useTheme();
@@ -15,7 +14,7 @@ function RootNavigator() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: theme.colors.background },
+          contentStyle: { backgroundColor: theme.colors.bg },
         }}
       >
         <Stack.Screen name="(tabs)" />
@@ -24,70 +23,51 @@ function RootNavigator() {
   );
 }
 
-/** Shown if a screen throws. Calm copy, no stack traces on screen. */
-export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
-  const theme = getTheme(useColorScheme());
+/** Calm, no stack traces on screen. */
+function ErrorFallback({ error, retry }: ErrorBoundaryProps) {
+  const theme = useTheme();
 
   return (
     <View
-      style={[
-        styles.errorRoot,
-        { backgroundColor: theme.colors.background, padding: theme.spacing.xl },
-      ]}
+      style={{
+        backgroundColor: theme.colors.bg,
+        flex: 1,
+        justifyContent: 'center',
+        padding: theme.space.md,
+      }}
     >
-      <View
-        style={[
-          styles.errorCard,
-          {
-            backgroundColor: theme.colors.surface,
-            borderColor: theme.colors.border,
-            borderRadius: theme.radius.md,
-            padding: theme.spacing.xl,
-            gap: theme.spacing.md,
-          },
-        ]}
-      >
-        <Text
-          accessibilityRole="header"
-          style={[theme.typography.title, { color: theme.colors.text }]}
-        >
+      <Card>
+        <Text accessibilityRole="header" variant="title">
           Something went wrong
         </Text>
-        <Text style={[theme.typography.body, { color: theme.colors.textMuted }]}>
-          Nothing has been lost. Please try again.
-        </Text>
+        <Text tone="secondary">Nothing has been lost. Please try again.</Text>
         {error.message ? (
-          <Text style={[theme.typography.caption, { color: theme.colors.textMuted }]}>
+          <Text tone="tertiary" variant="caption">
             {error.message}
           </Text>
         ) : null}
-        <Pressable
-          accessibilityRole="button"
+        <Button
+          label="Try again"
           onPress={() => {
             void retry();
           }}
-          style={({ pressed }) => [
-            styles.retry,
-            {
-              backgroundColor: theme.colors.accent,
-              borderRadius: theme.radius.pill,
-              paddingVertical: theme.spacing.md,
-              paddingHorizontal: theme.spacing.xl,
-              opacity: pressed ? 0.85 : 1,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              theme.typography.bodyStrong,
-              { color: theme.colors.onAccent, textAlign: 'center' },
-            ]}
-          >
-            Try again
-          </Text>
-        </Pressable>
-      </View>
+        />
+      </Card>
     </View>
+  );
+}
+
+/**
+ * Shown if a screen throws. It sits outside the navigator, so it brings its own
+ * theme provider rather than assuming the root one survived.
+ */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  const scheme = useColorScheme();
+
+  return (
+    <ThemeProvider initialMode={scheme === 'dark' ? 'dark' : 'light'}>
+      <ErrorFallback error={error} retry={retry} />
+    </ThemeProvider>
   );
 }
 
@@ -100,18 +80,3 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  errorRoot: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  errorCard: {
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  retry: {
-    alignSelf: 'flex-start',
-    minHeight: 48,
-    justifyContent: 'center',
-  },
-});

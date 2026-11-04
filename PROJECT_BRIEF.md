@@ -38,6 +38,18 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 - PostHog (health fields stripped) and Sentry, both disabled when no key is set.
 - Vitest and Maestro for tests.
 
+## Product decisions from research (4 Nov 2026)
+
+`docs/RESEARCH.md` holds the market and competitor research. These follow from it and bind every task unless the owner says otherwise:
+
+1. **The four standouts are never cut and never feel like add-ons:** who's covering, sibling cost split with settle-up, the emergency sheet, and med check-offs. They lead in onboarding, the landing page and store screenshots.
+2. **Fairness is kind, never scorekeeping.** No rankings, no "Mike did nothing this month."
+3. **Polish and reliability beat feature count.** Families abandon care apps that glitch. Loading, empty, error and offline states are part of "done", not extras.
+4. **The emergency sheet prints cleanly on Letter and A4 and works fully offline.** It has to be at least as good as Caregiver Binder: Kinwatch's.
+5. **`SECURITY.md` lists every outside service the app talks to.** The FTC Health Breach Notification Rule applies: sharing health data with a third party without permission counts as a breach.
+6. **No health claims** in App Store or Play Store copy, emails, onboarding or anywhere in the product. We organize care; we never give it.
+7. **Product name, tagline and colours live in one brand config file**, not scattered through the code. The name has had no formal trademark review, so a rename must stay cheap.
+
 ## Brand
 
 - **Name:** Tendshare.
@@ -101,7 +113,7 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 | --- | --- | --- | --- |
 | 0 | `PROJECT_BRIEF.md` at the repo root, kept current | — | ✅ Done |
 | 1 | Monorepo (Turborepo + pnpm), app shell with 5 tabs, CI, README, CHANGELOG | Phase 1 | 🚧 In progress |
-| 2 | Design system package: brand tokens (light + dark), core components, hidden component gallery | Phase 1 | ⬜ Not started |
+| 2 | Design system package: brand tokens (light + dark), one brand config file (name, tagline, colours), core components, hidden component gallery | Phase 1 | ⬜ Not started |
 | 3 | Supabase schema, migrations, Row Level Security policies + RLS tests per table | Phase 1 | ⬜ Not started |
 | 4 | Auth: Sign in with Apple, Google and email code | Phase 1 | ⬜ Not started |
 | 5 | Onboarding, 3 screens: your name and photo → who you're caring for → invite family | Phase 1 | ⬜ Not started |
@@ -113,7 +125,7 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 | 11 | Document vault: folders, any file type, camera scan to PDF, owner-only locked folders, expiry reminders | Phase 2 | ⬜ Not started |
 | 12 | Cost split: expenses with receipts, three split modes, balances, settle-up, monthly PDF/CSV export | Phase 3 | ⬜ Not started |
 | 13 | Fairness view: visits, rides, expenses and hours per member, gently presented | Phase 3 | ⬜ Not started |
-| 14 | Emergency sheet: offline view, one-tap PDF, expiring share link | Phase 3 | ⬜ Not started |
+| 14 | Emergency sheet: fully offline view, one-tap PDF that prints cleanly on Letter and A4, expiring share link | Phase 3 | ⬜ Not started |
 | 15 | Invites by link/code/text with deep links; notifications and email with toggles; subscriptions and paywall | Phase 4 | ⬜ Not started |
 
 **Launch (Phase 5) follows task 15:** privacy and security pass (RLS and storage policy tests, audit log), accessibility audit, performance budget (cold start under 2 s), Maestro end-to-end tests, demo seed data, privacy policy and terms, App Store and Play Store metadata, EAS builds, and the landing page with pricing and a waitlist.
