@@ -9,6 +9,14 @@
 -- `authenticated` and set `request.jwt.claims`. No assertion ever runs as the
 -- table owner or as a superuser — those only seed and tear down.
 --
+-- Every fixture write goes through `tests.expect_write`, which performs it as
+-- `INSERT ... RETURNING` — the shape supabase-js produces for
+-- `.insert(...).select()`, and therefore the shape the app uses. A write checked
+-- only without RETURNING can pass here and be refused on the hosted project:
+-- that is exactly how the circle-creation bug (migration
+-- 20261104120400_circles_select_owner.sql) reached a pull request. Never assert
+-- on a write without its RETURNING rows.
+--
 -- Every check prints PASS or FAIL. The script exits non-zero if any check fails.
 
 
@@ -76,12 +84,45 @@ begin
 end;
 $$;
 
+-- Runs a write the way the app performs one: `insert(...).select()`, i.e.
+-- `INSERT ... RETURNING`. Pass the statement WITHOUT a RETURNING clause; this
+-- adds one, so the new row has to satisfy the table's SELECT policy as well as
+-- its INSERT policy — exactly what PostgREST asks of it.
+--
+-- `returning *`, never `returning 1`. A RETURNING list that names no column of
+-- the table is not checked against the SELECT policy at all (verified on
+-- Postgres 16), so a constant list would silently skip the very check this
+-- helper exists to make. That blind spot is how this file passed while the
+-- hosted project refused the app's first circle: `insert ... returning 1`
+-- succeeds, `insert ... returning *` does not.
+create or replace function tests.expect_write(p_name text, p_dml text)
+returns void
+language plpgsql
+as $$
+declare
+  written bigint;
+begin
+  begin
+    execute format('with changed as (%s returning *) select count(*) from changed', p_dml)
+      into written;
+  exception when others then
+    insert into tests.results (name, ok, detail)
+    values (p_name, false, sqlstate || ' ' || sqlerrm);
+    return;
+  end;
+
+  insert into tests.results (name, ok, detail)
+  values (p_name, written > 0, written || ' row(s) written and read back');
+end;
+$$;
+
 grant usage on schema tests to anon, authenticated;
 grant select, insert on table tests.results to anon, authenticated;
 grant usage on sequence tests.results_n_seq to anon, authenticated;
 grant execute on function tests.expect(text, boolean, text) to anon, authenticated;
 grant execute on function tests.expect_error(text, text) to anon, authenticated;
 grant execute on function tests.expect_rls(text, text) to anon, authenticated;
+grant execute on function tests.expect_write(text, text) to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Seed — as the database owner, the way a server-side process would
@@ -100,12 +141,18 @@ select tests.expect(
   (select count(*) from public.profiles) = 5
 );
 
--- A circle, created the way the app creates one: as the owner, through RLS.
+-- A circle, created the way the app creates one: as the owner, through RLS,
+-- with `.insert(...).select()` — i.e. with RETURNING.
 set role authenticated;
 set request.jwt.claims = '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}';
 
-insert into public.circles (id, name, owner_id, plan_tier)
-values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Sara''s family', '11111111-1111-4111-8111-111111111111', 'family_plus');
+select tests.expect_write(
+  'owner creates a circle and reads it back in the same statement (insert ... returning)',
+  $sql$
+    insert into public.circles (id, name, owner_id, plan_tier)
+    values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Sara''s family', '11111111-1111-4111-8111-111111111111', 'family_plus')
+  $sql$
+);
 
 select tests.expect(
   'owner can create a circle',
@@ -121,10 +168,15 @@ select tests.expect(
 );
 
 -- The owner adds the other three roles.
-insert into public.circle_members (circle_id, profile_id, role) values
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '22222222-2222-4222-8222-222222222222', 'family_member'),
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '33333333-3333-4333-8333-333333333333', 'view_only'),
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '44444444-4444-4444-8444-444444444444', 'visiting_helper');
+select tests.expect_write(
+  'owner adds members and reads them back in the same statement (insert ... returning)',
+  $sql$
+    insert into public.circle_members (circle_id, profile_id, role) values
+      ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '22222222-2222-4222-8222-222222222222', 'family_member'),
+      ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '33333333-3333-4333-8333-333333333333', 'view_only'),
+      ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '44444444-4444-4444-8444-444444444444', 'visiting_helper')
+  $sql$
+);
 
 select tests.expect(
   'owner can add members and set their roles',
@@ -132,8 +184,13 @@ select tests.expect(
     where circle_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') = 4
 );
 
-insert into public.care_recipients (circle_id, full_name, relationship)
-values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Margaret', 'Mom');
+select tests.expect_write(
+  'owner adds the person being cared for and reads it back in the same statement',
+  $sql$
+    insert into public.care_recipients (circle_id, full_name, relationship)
+    values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Margaret', 'Mom')
+  $sql$
+);
 
 select tests.expect(
   'owner can add the person being cared for',
@@ -142,11 +199,21 @@ select tests.expect(
 
 -- The plan limit gets its own circle on the free tier, so the check is about
 -- the limit and nothing else.
-insert into public.circles (id, name, owner_id)
-values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Free circle', '11111111-1111-4111-8111-111111111111');
+select tests.expect_write(
+  'owner creates a second circle with RETURNING',
+  $sql$
+    insert into public.circles (id, name, owner_id)
+    values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Free circle', '11111111-1111-4111-8111-111111111111')
+  $sql$
+);
 
-insert into public.care_recipients (circle_id, full_name)
-values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'First person');
+select tests.expect_write(
+  'owner adds the free plan''s person cared for with RETURNING',
+  $sql$
+    insert into public.care_recipients (circle_id, full_name)
+    values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'First person')
+  $sql$
+);
 
 select tests.expect(
   'the free plan allows one person cared for',
@@ -222,8 +289,23 @@ select tests.expect_rls(
   $sql$
 );
 
+-- The owner branch added to the circles SELECT policy must not become a way in
+-- for anyone else: a circle is readable because you own it or you are a member,
+-- not because you asked for it back with RETURNING.
+select tests.expect_rls(
+  'non-member cannot create a circle owned by someone else, with RETURNING',
+  $sql$
+    with changed as (
+      insert into public.circles (name, owner_id)
+      values ('Not mine', '11111111-1111-4111-8111-111111111111')
+      returning *
+    )
+    select count(*) from changed
+  $sql$
+);
+
 with changed as (
-  update public.care_recipients set full_name = 'Hijacked' returning 1
+  update public.care_recipients set full_name = 'Hijacked' returning *
 )
 select tests.expect(
   'non-member cannot update a care recipient',
@@ -231,7 +313,7 @@ select tests.expect(
 );
 
 with changed as (
-  delete from public.care_recipients returning 1
+  delete from public.care_recipients returning *
 )
 select tests.expect(
   'non-member cannot delete a care recipient',
@@ -268,7 +350,7 @@ select tests.expect_rls(
 );
 
 with changed as (
-  update public.care_recipients set full_name = 'Not allowed' returning 1
+  update public.care_recipients set full_name = 'Not allowed' returning *
 )
 select tests.expect(
   'view_only cannot update a care recipient',
@@ -276,7 +358,7 @@ select tests.expect(
 );
 
 with changed as (
-  delete from public.care_recipients returning 1
+  delete from public.care_recipients returning *
 )
 select tests.expect(
   'view_only cannot delete a care recipient',
@@ -286,7 +368,7 @@ select tests.expect(
 with changed as (
   update public.circles set name = 'Renamed'
   where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-  returning 1
+  returning *
 )
 select tests.expect(
   'view_only cannot change a circle setting',
@@ -361,7 +443,7 @@ select tests.expect(
 );
 
 with changed as (
-  update public.care_recipients set relationship = 'Mother' returning 1
+  update public.care_recipients set relationship = 'Mother' returning *
 )
 select tests.expect(
   'family_member can update a care recipient',
@@ -372,7 +454,7 @@ with changed as (
   update public.circle_members set role = 'view_only'
   where circle_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
     and profile_id = '33333333-3333-4333-8333-333333333333'
-  returning 1
+  returning *
 )
 select tests.expect(
   'family_member cannot change a role',
@@ -391,7 +473,7 @@ with changed as (
   delete from public.circle_members
   where circle_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
     and profile_id = '33333333-3333-4333-8333-333333333333'
-  returning 1
+  returning *
 )
 select tests.expect(
   'family_member cannot remove another member',
@@ -401,7 +483,7 @@ select tests.expect(
 with changed as (
   update public.circles set plan_tier = 'family_plus'
   where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-  returning 1
+  returning *
 )
 select tests.expect(
   'family_member cannot change the plan tier',
@@ -450,7 +532,7 @@ with changed as (
   update public.circle_members set role = 'view_only'
   where circle_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
     and profile_id = '22222222-2222-4222-8222-222222222222'
-  returning 1
+  returning *
 )
 select tests.expect(
   'owner can change a role',
@@ -461,7 +543,7 @@ with changed as (
   update public.circle_members set role = 'family_member'
   where circle_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
     and profile_id = '22222222-2222-4222-8222-222222222222'
-  returning 1
+  returning *
 )
 select tests.expect(
   'owner can change a role back',
@@ -471,7 +553,7 @@ select tests.expect(
 with changed as (
   update public.circles set plan_tier = 'family', plan_status = 'active'
   where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-  returning 1
+  returning *
 )
 select tests.expect(
   'owner can change plan fields',

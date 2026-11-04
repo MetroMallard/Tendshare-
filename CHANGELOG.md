@@ -6,6 +6,37 @@ All notable changes to Tendshare are recorded here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **Creating a circle with `.insert(...).select()` was refused by RLS.** That call —
+  `INSERT ... RETURNING` — is what the app makes on its very first write, because it
+  needs the new circle's id, and it has to satisfy the table's **SELECT** policy for
+  the row it returns. `circles_select_care_team` only recognised the owner through
+  their `circle_members` row, which the `circles_create_owner_membership` AFTER
+  INSERT trigger writes during that same statement — after the snapshot the policy
+  is evaluated against. So at RETURNING time the membership was invisible, and a
+  legal insert came back as `42501 new row violates row-level security policy for
+table "circles"`. Fixed forward-only in
+  `20261104120400_circles_select_owner.sql`: the SELECT policy now reads
+  `owner_id = auth.uid()` from the row itself, which is knowable before the trigger
+  runs. Nothing was widened — family members and view-only members are checked
+  through their membership exactly as before, a visiting helper still cannot read a
+  circle, and a non-member still sees nothing. The same class of bug was audited on
+  `circle_members`, `care_recipients` and `profiles`; `circles` was the only table
+  where it could happen, and the reasoning is recorded in the migration.
+- **The local RLS harness could not have caught it, and now can.**
+  `pnpm test:rls:local` seeded its fixtures with plain `INSERT`s, so a write that
+  only fails when it asks for the row back passed locally and failed against the
+  hosted project — which is how the bug above reached a pull request. Every fixture
+  write now goes through `tests.expect_write`, which performs it as
+  `INSERT ... RETURNING` with `returning *`, the shape supabase-js produces; a
+  `returning 1` list is called out in the file as the blind spot it is, because
+  Postgres does not apply the SELECT policy to a RETURNING list that names no column
+  of the table. Removing the fix makes the local suite fail.
+- **A hosted regression test for circle creation**, `tests/rls/circle-create.rls.test.ts`:
+  the owner creates a circle with `.insert().select().single()`, reads the owner
+  membership the trigger made, and a signed-out client is still refused.
+
 ### Added
 
 - **The database.** Four forward-only migrations in `supabase/migrations/` create the
@@ -21,7 +52,7 @@ definer` helpers with a pinned `search_path`, which is what keeps the
 - **An RLS test suite that bites.** `pnpm test:rls` runs against the hosted project
   as real signed-in users (anon key plus real JWTs; the service role only creates
   and deletes users in setup and teardown) and skips cleanly without credentials,
-  so CI stays secret-free. `pnpm test:rls:local` proves the same 61 boundaries
+  so CI stays secret-free. `pnpm test:rls:local` proves the same 67 boundaries
   against a scratch Postgres with no hosted project at all.
 - **`pnpm db:migrate`**, which applies the migrations once each and records what it
   has run.

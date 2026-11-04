@@ -12,6 +12,12 @@
 --     to them the way it does through PostgREST;
 --   * the tables are owned by `postgres`, the role that also owns them on a
 --     hosted project.
+--
+-- One thing this stub cannot do for the suite: choose the statement shape. RLS
+-- checks a RETURNING row against the table's SELECT policy only when the
+-- RETURNING list reads the row, so a local fixture written without RETURNING —
+-- or with `returning 1` — proves less than the app's `.insert().select()` does.
+-- `tests.expect_write` in rls.test.sql is the way to write a fixture here.
 
 do $$
 begin
