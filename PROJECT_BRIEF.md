@@ -114,8 +114,8 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 | 0 | `PROJECT_BRIEF.md` at the repo root, kept current | — | ✅ Done |
 | 1 | Monorepo (Turborepo + pnpm), app shell with 5 tabs, CI, README, CHANGELOG | Phase 1 | ✅ Done — PR #1 |
 | 2 | Design system package: brand tokens (light + dark), one brand config file (name, tagline, colours), core components, hidden component gallery | Phase 1 | ✅ Done — PR #2 |
-| 3 | Supabase schema, migrations, Row Level Security policies + RLS tests per table | Phase 1 | ⬜ Not started |
-| 4 | Auth: Sign in with Apple, Google and email code | Phase 1 | ⬜ Not started |
+| 3 | Supabase schema, migrations, Row Level Security policies + RLS tests per table | Phase 1 | 🚧 In progress |
+| 4 | Auth: **email code + Google now**; Sign in with Apple deferred until the owner's Apple Developer account exists — **must ship before App Store submission** | Phase 1 | ⬜ Not started |
 | 5 | Onboarding, 3 screens: your name and photo → who you're caring for → invite family | Phase 1 | ⬜ Not started |
 | 6 | Care circles, the four roles, and the circle switcher | Phase 1 | ⬜ Not started |
 | 7 | Person profile: basics, doctors and pharmacies, allergies and conditions as typed, insurance cards | Phase 2 | ⬜ Not started |
