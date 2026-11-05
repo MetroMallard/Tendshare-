@@ -35,3 +35,38 @@ Any service not in the table above. Do not add one without a row here and the ow
 - Confirm Expo push payload contents before notifications ship (Task 15).
 - ~~Add the audit log of views and changes to sensitive records, and confirm where it is stored.~~ **Done (Task 3).** The audit log is `public.audit_log` in the same Supabase Postgres — no third party, so nothing new to review. It is append-only: Row Level Security is enabled and forced, no client role holds UPDATE or DELETE, and a trigger refuses every UPDATE and TRUNCATE except the foreign key that clears the actor when an account is deleted. It stores a minimal non-health payload (ids, counts, field names) capped at 512 bytes, never free text or health content.
 - Data export and full account/data deletion must cover Supabase Storage as well as Postgres — verify with a real deletion test before Phase 5.
+
+## Auth data flow (Task 4)
+
+**What Supabase Auth stores.** `auth.users` (email address, a bcrypt/scrypt hash of nothing —
+there is no password — the user id, created/last-sign-in timestamps, provider identities), the
+one-time code and its short expiry, and refresh tokens. All inside the Supabase project.
+
+**What we store.** In the app: the session (access token, refresh token, expiry) in
+`expo-secure-store` on iOS/Android with `WHEN_UNLOCKED_THIS_DEVICE_ONLY`, and in `localStorage` on
+the web, which has no keychain. In Postgres: one `public.profiles` row per auth user, created by the
+on-signup trigger — display name and optional avatar path, nothing else. The address a code was sent
+to is held in memory only, never persisted, and cleared on sign-out and on relaunch.
+
+**What never leaves.**
+- The **service role key** is never in the app, never in a `.env` file in this repo, never in a
+  bundle. `readSupabaseConfig` refuses any key whose JWT role is not `anon`, so a paste mistake fails
+  loudly instead of shipping a policy bypass.
+- **No analytics or crash SDK is involved in auth.** Nothing here calls PostHog or Sentry, and no
+  error message, email address or token is written to a log. Failures become one of nine fixed
+  sentences in `src/auth/errors.ts`; the raw GoTrue message is dropped because it can echo the
+  address that was typed.
+- The UI never reveals whether an email is registered: a wrong code and an expired code get identical
+  copy, and "send a code" always reports success.
+- **OAuth (Google).** The browser/native auth sheet talks to Google and to `…/auth/v1/callback` on the
+  Supabase project; the app only ever sees a PKCE code and then a session. The provider's identity
+  token never reaches app code. Availability is read from the public `GET /auth/v1/settings` with the
+  anon key; if Google is not enabled the screen says so and offers email instead — no dead button.
+- **Sign out** clears the device first, then revokes every refresh token for the account (global
+  scope), so a session left open on a lost phone dies too.
+
+**Untested / owner action.** Google is not enabled in the Supabase project yet, so the flow is built
+but unverified against a live provider. Enabling it needs a Google Cloud OAuth client plus the
+Supabase dashboard (Authentication → Providers → Google), with `…/auth/v1/callback` as the redirect
+and the app's origins/scheme on the allow list. Apple sign-in is deliberately not built (no Apple
+Developer account); its entry exists in `AUTH_PROVIDERS` with `built: false`.

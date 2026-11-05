@@ -95,3 +95,18 @@ definer` helpers with a pinned `search_path`, which is what keeps the
   network call and no analytics or tracking SDK yet.
 - iOS and Android store builds need the owner's own EAS account and cannot be
   produced on this machine.
+
+## Task 4 — Authentication: email code and Google (branch `task-4-auth`)
+
+- Email one-time code sign-in (Supabase OTP) with resend cooldown, six-digit input and friendly copy
+  for wrong/expired code, rate limits and no connection. Never reveals whether an address is known.
+- "Continue with Google" behind a live provider flag read from `GET /auth/v1/settings`; when the
+  provider is off the screen says so and points at email. Web uses the OAuth redirect, native uses
+  `expo-auth-session` + a PKCE deep-link return. Apple is one list entry away (`built: false`).
+- `SessionProvider` / `useSession`: restore on launch, refresh on expiry and on foreground, secure
+  storage (`expo-secure-store`, never AsyncStorage), global sign-out, and a pure route guard
+  (`resolveAuthRedirect`) so signed-out people cannot reach the shell and signed-in ones never sit on
+  the sign-in form.
+- Sign out from the More tab behind a confirmation, clearing the device before the network call.
+- Hidden `/auth-preview` route with every state at 390px in light and dark.
+- `docs/SECURITY.md` gained the auth data-flow section.
