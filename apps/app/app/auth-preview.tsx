@@ -349,8 +349,11 @@ function PreviewBody() {
           }}
           testID="preview-frame"
         >
-          {/* A nested provider pins the scheme for the phone frame only. */}
-          <ThemeProvider initialMode={scheme}>
+          {/* A nested provider pins the scheme for the phone frame only.
+              `key` remounts it when the choice changes: `initialMode` is read
+              once, so without this the Dark button recoloured the page and left
+              the phone frame light. */}
+          <ThemeProvider initialMode={scheme} key={scheme}>
             <View style={{ flex: 1 }}>{current?.render()}</View>
           </ThemeProvider>
         </View>
