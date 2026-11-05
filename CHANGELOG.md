@@ -96,10 +96,12 @@ definer` helpers with a pinned `search_path`, which is what keeps the
 - iOS and Android store builds need the owner's own EAS account and cannot be
   produced on this machine.
 
-## Task 4 — Authentication: email code and Google (branch `task-4-auth`)
+## Task 4 — Authentication: email code and Google (merged, PR #4)
 
-- Email one-time code sign-in (Supabase OTP) with resend cooldown, six-digit input and friendly copy
-  for wrong/expired code, rate limits and no connection. Never reveals whether an address is known.
+- Email one-time code sign-in (Supabase OTP) with resend cooldown, a 6–8 digit code field and friendly
+  copy for wrong/expired code, rate limits and no connection. Never reveals whether an address is
+  known. The hosted project mints 8-digit codes; the live auth test guards the range so a 6-only field
+  can never truncate a real code again.
 - "Continue with Google" behind a live provider flag read from `GET /auth/v1/settings`; when the
   provider is off the screen says so and points at email. Web uses the OAuth redirect, native uses
   `expo-auth-session` + a PKCE deep-link return. Apple is one list entry away (`built: false`).
