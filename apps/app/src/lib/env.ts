@@ -65,7 +65,7 @@ export function readKeyRole(key: string): string | null {
   }
 
   try {
-    const decoded = JSON.parse(decodeBase64Url(parts[1])) as unknown;
+    const decoded = JSON.parse(decodeBase64Url(parts[1] ?? '')) as unknown;
 
     if (typeof decoded !== 'object' || decoded === null) {
       return null;

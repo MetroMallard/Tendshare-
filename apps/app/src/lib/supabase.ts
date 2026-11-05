@@ -18,7 +18,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 
 import { supabaseConfig, type SupabaseConfig } from '../lib/env';
-import { secureAuthStorage } from './storage';
+import { secureAuthStorage } from '../auth/storage';
 
 let cached: SupabaseClient | null = null;
 let cachedFor: SupabaseConfig | null = null;
