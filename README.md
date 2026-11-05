@@ -31,12 +31,12 @@ tendshare/
 
 ## Prerequisites
 
-| Tool           | Version                      | Notes                                            |
-| -------------- | ---------------------------- | ------------------------------------------------ |
-| Node.js        | 22 LTS or newer (`>=22`)     | `node --version`                                 |
-| pnpm           | 12.16.1                      | `corepack enable` picks this up from package.json |
+| Tool           | Version                       | Notes                                             |
+| -------------- | ----------------------------- | ------------------------------------------------- |
+| Node.js        | 22 LTS or newer (`>=22`)      | `node --version`                                  |
+| pnpm           | 12.16.1                       | `corepack enable` picks this up from package.json |
 | Xcode          | Latest, with an iOS simulator | macOS only, for `pnpm ios`                        |
-| Android Studio | Latest, with an emulator     | For `pnpm android`                                |
+| Android Studio | Latest, with an emulator      | For `pnpm android`                                |
 
 The repo pins pnpm through the `packageManager` field, so with Corepack enabled
 (`corepack enable`) the right pnpm version is used automatically:
@@ -105,6 +105,57 @@ pnpm format        # Prettier, write
 pnpm format:check  # Prettier, check only
 ```
 
+## Database
+
+The schema lives in `supabase/migrations/` as timestamped, forward-only SQL. A
+migration that has been applied is never edited; add a new file instead. The
+first four files are the identity and authorisation core — `profiles`,
+`circles`, `circle_members`, `care_recipients` and the append-only `audit_log` —
+and they are the pattern every later feature table copies.
+
+**Apply them.** Either with the script (needs a Postgres connection string, which
+is a different secret from the API keys — Supabase dashboard → Project settings →
+Database → Connection string → _Session pooler_, with the database password in
+it):
+
+```bash
+SUPABASE_DB_URL='postgresql://...' pnpm db:migrate
+```
+
+or by pasting the files into the Supabase SQL editor in filename order. The
+script records what it has run in `supabase_migrations.schema_migrations`, so
+running it twice is safe.
+
+### Row Level Security tests
+
+`pnpm test` never touches a database: CI has no secrets. The RLS suite is its own
+command.
+
+```bash
+# Against the hosted project. Needs SUPABASE_URL, SUPABASE_ANON_KEY and
+# SUPABASE_SERVICE_ROLE_KEY, and the migrations applied.
+pnpm test:rls
+```
+
+Every assertion runs as a real signed-in user — the anon key plus a JWT from
+`signInWithPassword`. The service role is used only to create and delete auth
+users in setup and teardown, because it bypasses RLS and would prove nothing.
+The suite creates its own data (everything is prefixed `rls-test-`), deletes it
+again, and skips cleanly when the credentials are absent, so it is safe to leave
+out of CI.
+
+There is also a local pre-flight that needs no hosted project, only a Postgres
+you can reach with CREATEDB:
+
+```bash
+RLS_LOCAL_ADMIN_URL='postgres://postgres:postgres@127.0.0.1:5432/postgres' \
+  pnpm test:rls:local
+```
+
+It builds a scratch database, applies the Supabase stub (auth schema, `auth.uid()`,
+the API roles) and every migration, runs `supabase/tests/local/rls.test.sql`, and
+drops the database afterwards.
+
 ## Known platform caveats
 
 - **iOS and Android store builds cannot be produced on this machine.** `pnpm ios`
@@ -129,4 +180,5 @@ pnpm format:check  # Prettier, check only
   `TODO(design-system)` marker. The design-system slice replaces it.
 - **Copy.** Short, kind, plain. Nothing in this app gives medical advice.
 - **No analytics or tracking SDKs.** Health data never reaches one.
-- **Migrations only** for the database, once Supabase is wired up.
+- **Migrations only** for the database: `supabase/migrations/`, applied with
+  `pnpm db:migrate`. Never edit the hosted schema by hand.
