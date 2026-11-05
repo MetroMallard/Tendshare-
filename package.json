@@ -19,6 +19,7 @@
     "test:watch": "vitest",
     "test:rls": "vitest run --config vitest.rls.config.ts",
     "test:rls:local": "node scripts/rls-local.mjs",
+    "test:auth:live": "vitest run --config vitest.auth.config.ts",
     "db:migrate": "node scripts/db-migrate.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

@@ -7,6 +7,6 @@
     "target": "es2023",
     "types": ["node"]
   },
-  "include": ["vitest.config.ts", "vitest.rls.config.ts", "tests/**/*.ts"],
+  "include": ["vitest.config.ts", "vitest.rls.config.ts", "vitest.auth.config.ts", "tests/**/*.ts"],
   "exclude": ["node_modules", "apps", "packages"]
 }

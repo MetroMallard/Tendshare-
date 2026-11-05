@@ -8,9 +8,11 @@ and computer.
 **Tendshare organizes care; it never gives it.** There is no medical advice, no
 dosing suggestions, no interaction checks and no diagnoses anywhere in this codebase.
 
-> **Status: Phase 1, slice 1 — app shell only.** The five tabs render, the theme
-> follows the system light/dark setting, and CI runs typecheck, lint and tests.
-> Auth, onboarding, care circles, Supabase and every feature are still to come.
+> **Status: Phase 1, slice 2 — app shell and authentication.** The five tabs
+> render, the theme follows the system light/dark setting, and CI runs typecheck,
+> lint and tests. Sign-in by emailed one-time code works against the hosted
+> Supabase project, and Google is wired but switched off on the project. Care
+> circles, onboarding and every feature screen are still to come.
 
 ## What is here
 
@@ -87,6 +89,65 @@ platform:
 pnpm dev
 ```
 
+## Environment variables
+
+The app reads exactly two values, both from `apps/app/src/lib/env.ts`. Expo
+inlines `EXPO_PUBLIC_*` variables **at build time**, so they must be set in the
+shell that starts the dev server — exporting them in another terminal does
+nothing.
+
+| Variable                        | What it is                                       |
+| ------------------------------- | ------------------------------------------------ |
+| `EXPO_PUBLIC_SUPABASE_URL`      | the project URL, e.g. `https://xxxx.supabase.co` |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | the project's **anon** (public) key              |
+
+```bash
+export EXPO_PUBLIC_SUPABASE_URL='https://xxxx.supabase.co'
+export EXPO_PUBLIC_SUPABASE_ANON_KEY='eyJhbGciOi...'   # anon / publishable key
+pnpm dev:web
+```
+
+The anon key is the only key that may ever ship in the app. The service-role key
+must never appear in `apps/`, in an `EXPO_PUBLIC_*` variable, or in the web
+bundle: it bypasses Row Level Security.
+
+With neither variable set the app still starts and shows a clear "not configured
+yet" sign-in screen instead of a broken form — that is the `notConfigured`
+session state, and it is what CI and a fresh clone see.
+
+The test suites read different names, because they run on Node rather than in the
+app bundle:
+
+| Variable                    | Used by                                |
+| --------------------------- | -------------------------------------- |
+| `SUPABASE_URL`              | `pnpm test:rls`, `pnpm test:auth:live` |
+| `SUPABASE_ANON_KEY`         | both                                   |
+| `SUPABASE_SERVICE_ROLE_KEY` | both — setup and teardown only         |
+
+```bash
+export SUPABASE_URL='https://xxxx.supabase.co'
+export SUPABASE_ANON_KEY='eyJhbGciOi...'          # anon / publishable
+export SUPABASE_SERVICE_ROLE_KEY='eyJhbGciOi...'  # service role, never in the app
+```
+
+### `/auth-preview` — every auth state, on purpose
+
+Auth is a set of states that are hard to reach by hand: the offline notice, the
+resend cooldown, a wrong code, the "not configured" screen. `/auth-preview` draws
+every one of them, one at a time, and is the fastest way to review the sign-in
+work.
+
+1. Start the dev server: `pnpm dev:web`.
+2. Open `/auth-preview` — for example <http://localhost:8081/auth-preview>.
+3. Pick a state from the buttons on the left, and **Light** or **Dark** above
+   them. The preview draws the real screen inside a 390px-wide frame and pins the
+   scheme inside that frame, so what you see is what a phone shows.
+
+`/auth-preview` and `/gallery` are hidden routes: they hold no care data, they
+are not linked from the app, and the route guard lets them through in any session
+state so QA and the owner can always reach them. They are not the shell — a
+signed-out visitor still cannot see a tab.
+
 ## Check the work
 
 Run these from the repository root. They are the same three commands CI runs.
@@ -156,6 +217,37 @@ It builds a scratch database, applies the Supabase stub (auth schema, `auth.uid(
 the API roles) and every migration, runs `supabase/tests/local/rls.test.sql`, and
 drops the database afterwards.
 
+### Live auth test
+
+The RLS suite proves the database. This one proves the **sign-in flow**, against
+the hosted project, with the same clients the app builds:
+
+```bash
+# Needs SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY.
+pnpm test:auth:live
+```
+
+It creates one throwaway user, asks the Auth server to mint a real one-time code
+(`generateLink`), verifies that code through an anon-key client (`verifyOtp`), and
+asserts that:
+
+- a session comes back, and it is stored where the app reads it;
+- the `profiles` row exists for that user — written by the `handle_new_user()`
+  trigger, because the test never inserts one and RLS grants no INSERT on
+  `profiles`;
+- the minted code is accepted by the app's own input rules in
+  `apps/app/src/auth/code.ts` without being truncated;
+- `refreshSession()` works, so a session survives a restart days later;
+- `signOut()` leaves no session and no access to the row it could read a moment
+  before.
+
+It deletes the user afterwards and skips cleanly when the credentials are absent.
+
+**What it does not prove: that the code email is delivered.** Nothing reads a
+mailbox. Delivery depends on a real SMTP sender being configured on the project,
+so until that exists the flow is proven up to the point the mail leaves the
+server, and no further.
+
 ## Known platform caveats
 
 - **iOS and Android store builds cannot be produced on this machine.** `pnpm ios`
@@ -175,9 +267,8 @@ drops the database afterwards.
   `@ts-expect-error` to dodge a real type problem.
 - **One config, one place.** TypeScript, ESLint and Prettier settings live in
   `packages/config`; every workspace extends them.
-- **Design tokens.** Until `@tendshare/ui` lands, the app reads colours, spacing,
-  radii and type sizes from `apps/app/src/theme/tokens.ts`, which carries a
-  `TODO(design-system)` marker. The design-system slice replaces it.
+- **Design tokens.** Colours, spacing, radii and type sizes live in
+  `packages/ui/src/tokens`, behind `useTheme()`. A screen never hard-codes one.
 - **Copy.** Short, kind, plain. Nothing in this app gives medical advice.
 - **No analytics or tracking SDKs.** Health data never reaches one.
 - **Migrations only** for the database: `supabase/migrations/`, applied with
