@@ -24,6 +24,7 @@ export * from './components/Card';
 export * from './components/EmptyState';
 export * from './components/Field';
 export * from './components/ListRow';
+export * from './components/OptionList';
 export * from './components/Screen';
 export * from './components/ScreenHeader';
 export * from './components/Section';

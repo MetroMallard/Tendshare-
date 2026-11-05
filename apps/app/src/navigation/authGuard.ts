@@ -12,11 +12,12 @@ export const SIGN_IN_PATH = '/sign-in';
 export const HOME_PATH = '/';
 
 /**
- * Hidden routes: the component gallery and the auth state preview. They are not
- * the app shell, hold no care data, and are how the owner and QA look at every
- * state on purpose. They stay reachable in any session state.
+ * Hidden routes: the component gallery, the auth state preview and the
+ * onboarding state preview. They are not the app shell, hold no care data, and
+ * are how the owner and QA look at every state on purpose. They stay reachable
+ * in any session state.
  */
-export const HIDDEN_ROUTES: readonly string[] = ['gallery', 'auth-preview'];
+export const HIDDEN_ROUTES: readonly string[] = ['gallery', 'auth-preview', 'onboarding-preview'];
 
 export interface GuardInput {
   readonly status: 'loading' | 'signedOut' | 'signedIn' | 'notConfigured';
