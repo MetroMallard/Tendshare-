@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { Button, Card, ScreenHeader, Text, TextField, useTheme } from '@tendshare/ui';
 
 import { Screen } from '../../components/Screen';
-import { CODE_LENGTH } from '../code';
+import { CODE_MAX_LENGTH, isCompleteCode } from '../code';
 import type { AuthFailure } from '../errors';
 import { AuthNotice } from './AuthNotice';
 
@@ -45,7 +45,7 @@ export function VerifyView({
   offline,
 }: VerifyViewProps) {
   const theme = useTheme();
-  const ready = code.length === CODE_LENGTH;
+  const ready = isCompleteCode(code);
 
   return (
     <Screen>
@@ -54,7 +54,7 @@ export function VerifyView({
           backLabel="Use a different email"
           eyebrow="One last step"
           onBack={onChangeEmail}
-          subtitle={`We sent a six-digit code to ${email}.`}
+          subtitle={`We sent a code to ${email}.`}
           title="Check your email"
           titleTestID="verify-heading"
         />
@@ -85,8 +85,8 @@ export function VerifyView({
               editable={!verifying}
               inputMode="numeric"
               keyboardType="number-pad"
-              label="Six-digit code"
-              maxLength={CODE_LENGTH}
+              label="The code from your email"
+              maxLength={CODE_MAX_LENGTH}
               onChangeText={onChangeCode}
               onSubmitEditing={onSubmit}
               placeholder="123456"

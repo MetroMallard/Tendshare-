@@ -1,10 +1,20 @@
 /**
  * The small, boring rules about the two things a person types: an email address
- * and a six-digit code. Pure functions, so they are tested directly.
+ * and the code from their inbox. Pure functions, so they are tested directly.
  */
 
-/** How many digits the emailed code has. */
-export const CODE_LENGTH = 6;
+/**
+ * How many digits the emailed code has — decided by the project, not by us.
+ *
+ * Supabase's `OTP_LENGTH` is a project setting: GoTrue's own default is six, and
+ * the hosted project currently mints **eight** (measured, not guessed — see
+ * `pnpm test:auth:live`). Hard-coding six made the verify screen silently cut
+ * every real code down to its first six digits, so every real sign-in failed.
+ * The field therefore accepts the whole plausible range and the server is the
+ * judge; the live suite fails if a minted code ever falls outside it.
+ */
+export const CODE_MIN_LENGTH = 6;
+export const CODE_MAX_LENGTH = 8;
 
 /**
  * Trim and lower-case. Email local parts are technically case-sensitive, but no
@@ -48,16 +58,17 @@ export function isPlausibleEmail(input: string): boolean {
 }
 
 /**
- * Digits only, capped at the code length.
+ * Digits only, capped at the longest code the project could send.
  *
  * Phones happily paste " 123 456 " or "123456\n" from a mail client, and a
  * numeric keypad can still emit a comma. Everything that is not a digit is
  * dropped so the field is always a valid code or a shorter prefix of one.
  */
-export function digitsOnly(input: string, max: number = CODE_LENGTH): string {
+export function digitsOnly(input: string, max: number = CODE_MAX_LENGTH): string {
   return input.replace(/\D/g, '').slice(0, max);
 }
 
+/** Long enough to be a whole code, short enough to be one. */
 export function isCompleteCode(input: string): boolean {
-  return input.length === CODE_LENGTH && /^\d+$/.test(input);
+  return input.length >= CODE_MIN_LENGTH && input.length <= CODE_MAX_LENGTH && /^\d+$/.test(input);
 }

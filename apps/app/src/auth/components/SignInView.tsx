@@ -150,7 +150,7 @@ export function SignInView({
               <View style={{ gap: theme.space.sm }}>
                 <Text variant="subheading">Use your email</Text>
                 <Text tone="secondary" variant="caption">
-                  We'll send a six-digit code. There's no password to remember.
+                  We'll email you a code. There's no password to remember.
                 </Text>
                 <TextField
                   autoCapitalize="none"

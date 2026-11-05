@@ -48,7 +48,7 @@ const FAILURES: Readonly<Record<AuthFailureKind, AuthFailure>> = {
     kind: 'invalid_code',
     title: "That code didn't work",
     message:
-      "Check the six digits and try once more. If it's been a while since the email arrived, ask for a new code.",
+      "Check the code in your email and try once more. If it's been a while since the email arrived, ask for a new code.",
     retryable: true,
   },
   too_many_attempts: {

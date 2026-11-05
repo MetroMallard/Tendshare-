@@ -19,13 +19,20 @@ describe('email', () => {
   });
 
   it('rejects the shapes that are always a typo', () => {
-    for (const email of ['', 'sara', 'sara@', '@example.com', 'sara@example', 'sa ra@example.com']) {
+    for (const email of [
+      '',
+      'sara',
+      'sara@',
+      '@example.com',
+      'sara@example',
+      'sa ra@example.com',
+    ]) {
       expect(isPlausibleEmail(email), email).toBe(false);
     }
   });
 });
 
-describe('the six-digit code', () => {
+describe('the emailed code', () => {
   it('keeps digits only, so a paste from a mail client still works', () => {
     expect(digitsOnly(' 123 456 ')).toBe('123456');
     expect(digitsOnly('123-456')).toBe('123456');
@@ -33,12 +40,15 @@ describe('the six-digit code', () => {
   });
 
   it('never grows past the code length', () => {
-    expect(digitsOnly('1234567890')).toBe('123456');
+    expect(digitsOnly('1234567890')).toBe('12345678');
   });
 
-  it('is complete only at six digits', () => {
+  it('is complete at any length the project could mint', () => {
     expect(isCompleteCode('12345')).toBe(false);
     expect(isCompleteCode('123456')).toBe(true);
+    // The hosted project mints eight digits today, so six is not enough.
+    expect(isCompleteCode('12345678')).toBe(true);
+    expect(isCompleteCode('123456789')).toBe(false);
     expect(isCompleteCode('')).toBe(false);
   });
 });
