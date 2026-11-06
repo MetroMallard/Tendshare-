@@ -129,17 +129,26 @@ export function ListRow({
 
   const body = subtitleBelow ? (
     <>
+      {/*
+        `wrap` is deliberate: a long name beside a wide badge ("Visiting
+        helper") leaves the name about 130pt on a 390pt phone, and a name broken
+        across two lines reads worse than a badge that drops to its own line.
+        The badge keeps the right edge wherever it lands.
+      */}
       <View
         style={{
           alignItems: 'center',
           flexDirection: 'row',
+          flexWrap: 'wrap',
           gap: theme.space.sm,
           minHeight: theme.layout.controlHeight.small,
         }}
       >
         {leading}
-        <View style={{ flex: 1 }}>{titleText}</View>
-        {trailingSlot}
+        <View style={{ flexShrink: 1 }}>{titleText}</View>
+        {trailing ? (
+          <View style={{ alignItems: 'flex-end', marginLeft: 'auto' }}>{trailing}</View>
+        ) : null}
         {chevronSlot}
       </View>
 
