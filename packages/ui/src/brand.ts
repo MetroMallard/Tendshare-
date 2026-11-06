@@ -56,9 +56,10 @@ export interface Brand {
 export const brand: Brand = {
   name: 'Tendshare',
   tagline: 'Care for someone you love, shared with your family.',
-  // Placeholder inbox for the support address the brief requires. Nothing
-  // renders it yet; confirm the real address before launch copy points at it.
-  supportEmail: 'help@tendshare.app',
+  // The settled support address (owner decision, 6 Nov 2026). Mail to it is
+  // forwarded to the owner through the domain's MX records, so it can appear in
+  // store listings and printed material. Nothing renders it yet.
+  supportEmail: 'support@tendshare.app',
   palette: {
     light: {
       primary: '#10456B',
