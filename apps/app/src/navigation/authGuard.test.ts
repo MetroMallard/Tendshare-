@@ -18,6 +18,7 @@ import {
 } from './authGuard';
 
 const SHELL = ['(tabs)', 'index'] as const;
+const PROFILE_PREVIEW = ['profile-preview'] as const;
 const ROOT: readonly string[] = [];
 const SIGN_IN = ['(auth)', 'sign-in'] as const;
 const VERIFY = ['(auth)', 'verify'] as const;
@@ -150,6 +151,7 @@ describe('route classification', () => {
   it('recognises the hidden routes', () => {
     expect(isHiddenRoute(GALLERY)).toBe(true);
     expect(isHiddenRoute(PREVIEW)).toBe(true);
+    expect(isHiddenRoute(PROFILE_PREVIEW)).toBe(true);
     expect(isHiddenRoute(SHELL)).toBe(false);
     expect(isHiddenRoute(ROOT)).toBe(false);
   });
