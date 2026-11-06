@@ -47,6 +47,8 @@ export interface MembersViewProps {
   readonly onRetry: () => void;
   readonly onSelectMember?: (member: CircleMember) => void;
   readonly onRename: () => void;
+  /** Opens the person's profile. Today's card leads to the same place. */
+  readonly onOpenRecipient?: () => void;
   readonly testID?: string;
 }
 
@@ -76,6 +78,7 @@ export function MembersView({
   onRetry,
   onSelectMember,
   onRename,
+  onOpenRecipient,
   testID = 'screen-members',
 }: MembersViewProps) {
   const theme = useTheme();
@@ -127,8 +130,10 @@ export function MembersView({
               />
             ) : (
               <ListRow
+                accessibilityHint="Opens their profile: the basics, doctors, allergies and insurance cards."
                 avatarName={recipient.fullName}
-                showChevron={false}
+                onPress={onOpenRecipient}
+                showChevron={onOpenRecipient !== undefined}
                 subtitle={recipient.relationship ?? 'Relationship not added'}
                 testID="members-recipient"
                 title={recipient.fullName}
