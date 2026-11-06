@@ -23,6 +23,7 @@ export * from './components/Button';
 export * from './components/Card';
 export * from './components/EmptyState';
 export * from './components/Field';
+export * from './components/initials';
 export * from './components/ListRow';
 export * from './components/listRowLabel';
 export * from './components/OptionList';

@@ -100,7 +100,11 @@ export const lightColors: ThemeColors = {
 
   textPrimary: '#17232E',
   textSecondary: '#4C5A66',
-  textTertiary: '#5E6A76',
+  // Captions, chevrons and the unselected radio ring all ride on this one. It
+  // was #5E6A76 — 5.0:1 on the page and 4.6:1 in a sunken well, passing by a
+  // hair while carrying every 15px line in the product. Darkened to 5.9:1 /
+  // 5.4:1, which is what a caption in a kitchen at 7am actually needs.
+  textTertiary: '#535F6B',
   textInverse: '#FFFFFF',
 
   brand: lightBrand.primary,

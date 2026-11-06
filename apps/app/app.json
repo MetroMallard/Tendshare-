@@ -21,8 +21,8 @@
       "name": "Tendshare",
       "shortName": "Tendshare",
       "lang": "en",
-      "themeColor": "#12395B",
-      "backgroundColor": "#F7F6F3"
+      "themeColor": "#10456B",
+      "backgroundColor": "#F7F3EC"
     },
     "plugins": [
       "expo-router",

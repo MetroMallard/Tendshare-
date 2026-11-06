@@ -66,7 +66,7 @@ export function ScreenHeader({
             </Text>
           ) : null}
 
-          <Text accessibilityRole="header" testID={titleTestID} variant="title">
+          <Text accessibilityRole="header" balance testID={titleTestID} variant="title">
             {title}
           </Text>
         </View>

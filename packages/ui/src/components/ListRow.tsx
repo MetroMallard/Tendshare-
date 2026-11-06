@@ -1,10 +1,13 @@
-import type { ReactNode } from 'react';
+import { isValidElement, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useTheme } from '../ThemeProvider';
 import { useFocusRing, type IconComponent } from '../primitives';
 import { Avatar } from './Avatar';
+import { Button } from './Button';
+import { groupAsOneElement } from './grouping';
 import { listRowAccessibilityLabel } from './listRowLabel';
+import { showsChevron } from './rowAffordance';
 import { Text } from './Text';
 
 export interface ListRowProps {
@@ -35,7 +38,13 @@ export interface ListRowProps {
   readonly icon?: IconComponent;
   /** Leading initials, used when there is no `icon`. */
   readonly avatarName?: string;
-  /** Right-hand slot: a pill, a time, a value, a small action. */
+  /**
+   * Right-hand slot: a pill, a time, a value, a small action.
+   *
+   * A control here (a "Remove" button, say) is detected, and the row stops being
+   * a single accessibility element so that control stays reachable by a screen
+   * reader. See `grouping.ts`.
+   */
   readonly trailing?: ReactNode;
   readonly onPress?: () => void;
   /** Spoken hint about what pressing does. Required reading for ambiguity. */
@@ -64,16 +73,47 @@ function Chevron({ color }: { color: string }) {
 }
 
 /**
+ * Does this slot hold something a finger — or a screen reader — can activate?
+ *
+ * Walks the element tree rather than looking only at the top level, so a control
+ * wrapped in a layout view is still found. Deliberately small: it knows the
+ * design system's own `Button` and React Native's `Pressable`, which is every
+ * way this row's trailing slot is used to carry an action.
+ */
+function holdsControl(node: ReactNode): boolean {
+  if (Array.isArray(node)) {
+    return node.some((child) => holdsControl(child as ReactNode));
+  }
+
+  if (!isValidElement<{ children?: ReactNode }>(node)) {
+    return false;
+  }
+
+  if (node.type === Button || node.type === Pressable) {
+    return true;
+  }
+
+  return holdsControl(node.props.children);
+}
+
+/**
  * The workhorse row: icon or avatar, a title, an optional second line and a
  * trailing slot.
  *
  * Rows are 60pt tall minimum, so a list of five is still easy to hit with a
  * thumb. A pressable row is one accessibility element — a screen reader says
- * the title and the subtitle together, not two fragments.
+ * the title and the subtitle together, not two fragments. A row that is *not*
+ * pressable but carries a control in its trailing slot is not: grouping it
+ * would hide the control, so its text and the control are read separately.
  *
  * Two layouts, one row: the subtitle beside the trailing slot (the default) and
  * the subtitle on its own full-width line beneath the title, for a subtitle that
  * is a sentence rather than a label. See `subtitleBelow`.
+ *
+ * A trailing badge never costs the chevron. The badge and the chevron share one
+ * right-hand column: the badge is pinned, the chevron follows it, and the title
+ * takes the rest of the width. An editable row looks editable whatever badge it
+ * happens to carry.
  */
 export function ListRow({
   title,
@@ -93,12 +133,13 @@ export function ListRow({
   const { focusHandlers, focusRingStyle } = useFocusRing();
 
   const pressable = typeof onPress === 'function';
-  const chevron = showChevron ?? pressable;
+  const chevron = showsChevron({ pressable, showChevron, hasTrailing: trailing !== undefined });
   const spokenLabel = listRowAccessibilityLabel({
     title,
     subtitle,
     spokenLabel: accessibilityLabel,
   });
+  const groupsAsOne = groupAsOneElement(holdsControl(trailing));
 
   const leading = Icon ? (
     <View
@@ -124,32 +165,42 @@ export function ListRow({
     </Text>
   );
 
-  const trailingSlot = trailing ? <View style={{ alignItems: 'flex-end' }}>{trailing}</View> : null;
-  const chevronSlot = chevron && !trailing ? <Chevron color={theme.colors.textTertiary} /> : null;
+  const chevronSlot = chevron ? <Chevron color={theme.colors.textTertiary} /> : null;
 
-  const body = subtitleBelow ? (
-    <>
-      {/*
-        `wrap` is deliberate: a long name beside a wide badge ("Visiting
-        helper") leaves the name about 130pt on a 390pt phone, and a name broken
-        across two lines reads worse than a badge that drops to its own line.
-        The badge keeps the right edge wherever it lands.
-      */}
+  /**
+   * The badge and the chevron are one column, not two siblings of the title.
+   * When they were siblings with `marginLeft: 'auto'`, a long name and a wide
+   * badge could not share a line and the badge wrapped onto its own, which made
+   * that one row taller than its neighbours.
+   */
+  const rightColumn =
+    trailing === undefined && chevronSlot === null ? null : (
       <View
         style={{
           alignItems: 'center',
           flexDirection: 'row',
-          flexWrap: 'wrap',
+          flexShrink: 0,
+          gap: theme.space.xs,
+        }}
+      >
+        {trailing === undefined ? null : <View style={{ alignItems: 'flex-end' }}>{trailing}</View>}
+        {chevronSlot}
+      </View>
+    );
+
+  const body = subtitleBelow ? (
+    <>
+      <View
+        style={{
+          alignItems: 'center',
+          flexDirection: 'row',
           gap: theme.space.sm,
           minHeight: theme.layout.controlHeight.small,
         }}
       >
         {leading}
-        <View style={{ flexShrink: 1 }}>{titleText}</View>
-        {trailing ? (
-          <View style={{ alignItems: 'flex-end', marginLeft: 'auto' }}>{trailing}</View>
-        ) : null}
-        {chevronSlot}
+        <View style={{ flex: 1 }}>{titleText}</View>
+        {rightColumn}
       </View>
 
       {/* Full width and unclamped: this is a sentence, not a label. */}
@@ -172,8 +223,7 @@ export function ListRow({
         ) : null}
       </View>
 
-      {trailingSlot}
-      {chevronSlot}
+      {rightColumn}
     </>
   );
 
@@ -184,14 +234,21 @@ export function ListRow({
       borderTopWidth: divider ? StyleSheet.hairlineWidth : 0,
       gap: subtitleBelow ? theme.space['2xs'] : theme.space.sm,
       minHeight: theme.layout.controlHeight.large,
+      // 16pt, so a row sits in a `padding="none"` card at the same inset as the
+      // cards around it. 8pt read as pinched.
+      paddingHorizontal: theme.space.sm,
       paddingVertical: theme.space.xs,
-      paddingHorizontal: theme.space.xs,
     },
   ];
 
   if (!pressable) {
     return (
-      <View accessible accessibilityLabel={spokenLabel} style={rowStyle} testID={testID}>
+      <View
+        accessible={groupsAsOne}
+        accessibilityLabel={groupsAsOne ? spokenLabel : undefined}
+        style={rowStyle}
+        testID={testID}
+      >
         {body}
       </View>
     );

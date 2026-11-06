@@ -67,7 +67,16 @@ function TabItem({
       >
         <Icon color={color} size={22} strokeWidth={focused ? 2.4 : 2} />
       </View>
-      <Text numberOfLines={1} style={{ color }} variant={focused ? 'label' : 'caption'}>
+      {/*
+        Same size selected and not: 15px both times, and the state is carried by
+        colour and weight. The label used to shrink from 15 to 14 when a tab was
+        chosen, which made the row of labels jitter as you moved between them.
+      */}
+      <Text
+        numberOfLines={1}
+        style={{ color, fontWeight: focused ? '700' : '500' }}
+        variant="caption"
+      >
         {item.label}
       </Text>
     </Pressable>

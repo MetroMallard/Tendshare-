@@ -67,8 +67,18 @@ export function SegmentedControl<T extends string>({
             }}
             style={({ pressed }) => ({
               alignItems: 'center',
-              backgroundColor: selected ? theme.colors.surface : 'transparent',
+              backgroundColor: selected ? theme.colors.surfaceRaised : 'transparent',
+              /*
+                The selected segment was a `surface` card on a `surfaceSunken`
+                track — in dark that is about 1.02:1, i.e. invisible, so the
+                control looked like one long row of unselected words. A 2pt
+                brand ring marks the choice the way `OptionList`'s radio does,
+                and the border is present (transparent) on every segment so
+                choosing one does not change the height of the row.
+              */
+              borderColor: selected ? theme.colors.brand : 'transparent',
               borderRadius: theme.radius.field,
+              borderWidth: 2,
               flex: 1,
               flexDirection: 'row',
               gap: theme.space['2xs'],

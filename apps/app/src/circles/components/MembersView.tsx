@@ -83,7 +83,6 @@ export function MembersView({
 }: MembersViewProps) {
   const theme = useTheme();
   const roster = members ?? [];
-  const atLimit = memberLimit !== null && roster.length >= memberLimit;
 
   return (
     <Screen>
@@ -152,10 +151,11 @@ export function MembersView({
         >
           <Card padding="none">
             {loadState === 'loading' ? (
-              <View style={{ gap: theme.space.md, padding: theme.space.sm }}>
-                <Skeleton lines={2} testID="members-loading-one" />
-                <Skeleton lines={2} testID="members-loading-two" />
-                <Skeleton lines={2} testID="members-loading-three" />
+              // Row-shaped, because rows are what is coming. Text bars inside a
+              // row-shaped card made the loading screen look like a different
+              // screen for a moment.
+              <View style={{ padding: theme.space.sm }}>
+                <Skeleton lines={3} shape="row" testID="members-loading" />
               </View>
             ) : loadState === 'error' ? (
               <EmptyState
@@ -177,6 +177,10 @@ export function MembersView({
               roster.map((member, index) => {
                 const canManage = canChangeRoleOf(role, member.role) && !offline;
 
+                // Only the owner's badge is tinted. Four brand-tinted pills made
+                // the owner look like everyone else — the one role that can
+                // change anything should be the one that reads differently, and
+                // the others are named in words anyway.
                 return (
                   <ListRow
                     key={member.profileId}
@@ -202,21 +206,17 @@ export function MembersView({
                     subtitleBelow
                     testID={`members-row-${member.profileId}`}
                     title={member.isSelf ? `${member.displayName} (you)` : member.displayName}
-                    trailing={<Badge label={roleLabel(member.role)} tone="brand" />}
+                    trailing={
+                      <Badge
+                        label={roleLabel(member.role)}
+                        tone={member.role === 'owner' ? 'brand' : 'neutral'}
+                      />
+                    }
                   />
                 );
               })
             )}
           </Card>
-
-          {atLimit ? (
-            <Notice
-              message={`Everyone already in the circle stays exactly where they are. A bigger plan is the only way to add someone new.`}
-              testID="members-plan-limit"
-              title={`This plan covers ${String(memberLimit)} people`}
-              tone="warning"
-            />
-          ) : null}
         </Section>
 
         {capabilities.canManageMembers ? (

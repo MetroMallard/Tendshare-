@@ -3,11 +3,7 @@ import { useState } from 'react';
 
 import { Badge, ListRow, OptionList, Sheet, Text, useTheme } from '@tendshare/ui';
 
-import {
-  circleDisplayName,
-  shouldShowSwitcher,
-  type CircleSummary,
-} from '../activeCircle';
+import { circleDisplayName, shouldShowSwitcher, type CircleSummary } from '../activeCircle';
 import { roleLabel, roleWithCount } from '../roles';
 
 export interface CircleSwitcherProps {
@@ -57,8 +53,18 @@ export function CircleSwitcher({
   return (
     <>
       <ListRow
+        /*
+          The visible "Switch" pill has to be in the spoken label: it is the one
+          word on the row that says this row *does* something. Offline the pill
+          reads "Offline", and the label says that instead.
+        */
+        accessibilityLabel={
+          switchable ? `${name}. ${subtitle}. ${canPress ? 'Switch circle' : 'Offline'}` : undefined
+        }
         accessibilityHint={
-          canPress ? 'Opens a list of your circles. Every tab follows the one you choose.' : undefined
+          canPress
+            ? 'Opens a list of your circles. Every tab follows the one you choose.'
+            : undefined
         }
         avatarName={active.recipientName ?? undefined}
         icon={active.recipientName === null ? Users : undefined}

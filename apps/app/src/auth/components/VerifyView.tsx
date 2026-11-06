@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { Button, Card, ScreenHeader, Text, TextField, useTheme } from '@tendshare/ui';
 
 import { Screen } from '../../components/Screen';
-import { CODE_MAX_LENGTH, isCompleteCode } from '../code';
+import { CODE_MAX_LENGTH, CODE_PLACEHOLDER, isCompleteCode } from '../code';
 import type { AuthFailure } from '../errors';
 import { AuthNotice } from './AuthNotice';
 
@@ -89,7 +89,7 @@ export function VerifyView({
               maxLength={CODE_MAX_LENGTH}
               onChangeText={onChangeCode}
               onSubmitEditing={onSubmit}
-              placeholder="123456"
+              placeholder={CODE_PLACEHOLDER}
               returnKeyType="done"
               testID="verify-code"
               textContentType="oneTimeCode"
@@ -131,7 +131,7 @@ export function VerifyView({
           />
         </View>
 
-        <Text align="center" tone="tertiary" variant="caption">
+        <Text align="center" balance tone="tertiary" variant="caption">
           The code works once, and only for a short while.
         </Text>
       </View>
