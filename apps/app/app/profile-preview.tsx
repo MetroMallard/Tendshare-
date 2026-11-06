@@ -1,11 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
 
-import { Button, ScreenHeader, Text, ThemeProvider, useTheme } from '@tendshare/ui';
+import { Button, ConfirmSheet, ScreenHeader, Text, ThemeProvider, useTheme } from '@tendshare/ui';
 
 import type { CircleRole } from '../src/circles/circleState';
 import { capabilitiesFor } from '../src/circles/roles';
 import { ProfileView } from '../src/profile/components/ProfileView';
+import { BasicsSheet, ContactSheet } from '../src/profile/components/ProfileSheets';
 import type { CareProfile } from '../src/profile/profileData';
 
 /**
@@ -235,6 +236,59 @@ const STATES: readonly StateFixture[] = [
     key: 'long',
     label: 'Profile — long names',
     render: () => profileView({ role: 'owner', circleName: LONG_CIRCLE, profile: LONG_PROFILE }),
+  },
+  {
+    key: 'sheet-basics',
+    label: 'Profile — the basics sheet',
+    render: () => (
+      <>
+        {profileView({ role: 'owner' })}
+        <BasicsSheet
+          busy={false}
+          initial={{
+            fullName: 'Margaret Anne Jones',
+            preferredName: 'Mum',
+            relationship: 'Mother',
+            dateOfBirth: '1942-03-12',
+            phone: '+44 7700 900123',
+            notes: 'Prefers the quiet room by the window. Hates being rushed in the morning.',
+          }}
+          onClose={noop}
+          onSave={noop}
+          visible
+        />
+      </>
+    ),
+  },
+  {
+    key: 'sheet-doctor',
+    label: 'Profile — adding a doctor',
+    render: () => (
+      <>
+        {profileView({ role: 'owner' })}
+        <ContactSheet busy={false} contact={null} kind="doctor" onClose={noop} onSave={noop} visible />
+      </>
+    ),
+  },
+  {
+    key: 'sheet-confirm',
+    label: 'Profile — removing a contact',
+    render: () => (
+      <>
+        {profileView({ role: 'owner' })}
+        <ConfirmSheet
+          cancelLabel="Keep it"
+          confirmLabel="Remove contact"
+          destructive
+          message={'“Dr Priya Patel” will be removed from this profile for everyone in the circle, and the change is recorded in the activity log. This cannot be undone.'}
+          onClose={noop}
+          onConfirm={noop}
+          testID="profile-delete-confirm"
+          title="Remove “Dr Priya Patel”?"
+          visible
+        />
+      </>
+    ),
   },
 ];
 

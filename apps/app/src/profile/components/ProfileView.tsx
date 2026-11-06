@@ -511,7 +511,13 @@ export function ProfileView({
               />
             )}
 
-            {!capabilities.canEditCareRecipient ? (
+            {/*
+              Only a reader who can see the details gets this. A visiting helper
+              is not "here as a reader of everything" — the notice above says the
+              opposite, and two notices contradicting each other on one screen is
+              worse than none.
+            */}
+            {!capabilities.canEditCareRecipient && canSeeDetails ? (
               <Notice
                 message={`You can read everything here. Changing ${name}’s details is the family’s job.`}
                 testID="profile-read-only"
