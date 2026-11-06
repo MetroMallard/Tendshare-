@@ -25,6 +25,7 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 - **Tendshare organizes care; it never gives it.** No medical advice, dosing suggestions, interaction checks, diagnoses or health claims anywhere in the app, emails or store copy. Medication entries are exactly what the family types.
 - **Health data never goes to ad or tracking SDKs.** Analytics events carry no medication, condition, document or note content. No selling or sharing data. (The FTC Health Breach Notification Rule applies to apps like this.)
 - Encryption in transit and at rest, private storage buckets with signed URLs, optional Face ID / passcode lock, full account and data deletion, data export.
+- **Sensitive changes are audited as they ship, never in a later pass.** Any task that touches medications, documents, costs, the care recipient's details or circle membership writes its `audit_log` rows in the same pull request. Append-only, never client-writable (security-definer function or trigger with a pinned `search_path`), recording who changed what and when. A task that ships a sensitive write without its audit row is not done.
 
 ## Platforms and stack
 
@@ -142,3 +143,4 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 - **2026-11-05** — Onboarding writes `profiles.display_name`, then `circles`, then `care_recipients`, in that order, and **undoes the circle** if the person cannot be added: a circle with nobody in it spends the free plan's one person and shows Today nothing. If the undo fails, the circle id is kept in the draft and the next attempt adopts it.
 - **2026-11-05** — The onboarding draft is stored in the keychain (device) / `localStorage` (web) as it is typed. It holds three answers and never health data, and it is deleted when the circle is created or "Start over" is pressed.
 - **2026-11-05** — Screen 1 shows **initials only**; photo upload belongs with the person profile once the storage bucket and signed-URL rules exist. Screen 3 **does not send invitations** — invites are Task 11, behind `features.invitesEnabled`, and the screen says nothing has been sent.
+- **2026-11-05** — (owner) **Every task that touches meds, documents or costs writes to the audit log as it ships, not later.** Task 6 starts the pattern with membership and role changes; Tasks 7–11 extend it. Design polish items are batched for a later design pass rather than blocking a task.
