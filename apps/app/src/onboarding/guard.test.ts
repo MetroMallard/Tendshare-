@@ -26,10 +26,11 @@ const SIGN_IN = ['(auth)', 'sign-in'] as const;
 const GALLERY = ['gallery'] as const;
 const AUTH_PREVIEW = ['auth-preview'] as const;
 const ONBOARDING_PREVIEW = ['onboarding-preview'] as const;
+const CIRCLES_PREVIEW = ['circles-preview'] as const;
 
 const ONBOARDING_ROUTES = [ONBOARDING_ENTRY, YOU, CARE, INVITE] as const;
 const SHELL_ROUTES = [SHELL, ROOT] as const;
-const HIDDEN_ROUTES = [GALLERY, AUTH_PREVIEW, ONBOARDING_PREVIEW] as const;
+const HIDDEN_ROUTES = [GALLERY, AUTH_PREVIEW, ONBOARDING_PREVIEW, CIRCLES_PREVIEW] as const;
 
 const CIRCLE_STATES: readonly CircleState[] = ['loading', 'none', 'incomplete', 'ready', 'error'];
 

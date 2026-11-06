@@ -8,6 +8,50 @@ All notable changes to Tendshare are recorded here. The format follows
 
 ### Added
 
+- **Task 6 — care circles, the four roles and the circle switcher.**
+  - **One capability map** (`src/circles/roles.ts`) is the only place that decides what
+    a role may do: `owner`, `family_member`, `view_only`, `visiting_helper` → fifteen
+    capabilities (`canCheckOffMeds`, `canEditMeds`, `canInvite`, `canManageMembers`,
+    `canSeeCosts`, `canEditCareRecipient`, …), fully table-tested, used by every screen
+    so the UI never offers an action RLS will reject. Plain-language names only on
+    screen: **Owner**, **Family member**, **View only**, **Visiting helper**.
+  - **Circle switcher.** A person can be in several circles; the active one is in the
+    header of every tab, switching is one tap on one row, and the choice is remembered
+    per device in the keychain (`localStorage` on web) — never a global setting. With a
+    single circle there is no switcher at all, just the name.
+  - **Members screen** (`/members`, from More): the person being cared for at the top,
+    then everyone in the circle with avatar, name, role and what that role can do, plus
+    a plain-language explanation of all four roles. Owner only: change a role, remove a
+    member behind a `ConfirmSheet` that says what actually happens, and rename the
+    circle (soft limit 40 characters). Everyone else sees it read-only, said out loud
+    rather than as greyed-out controls. No invite button — the screen says invitations
+    are not built yet, in the same words as onboarding.
+  - **Loading, empty, error and offline** on both the switcher and the members screen,
+    plus the free plan's member cap in plain language when it is reached.
+  - Hidden `/circles-preview` renders every members and switcher state at 390px in both
+    schemes, built from the real components.
+
+### Fixed
+
+- **Nothing wrote to `audit_log` on its own.** The plan promises an audit trail of
+  changes to sensitive records, and until now every row was one a client chose to write
+  by calling `log_audit_event()`. Migration `20261105120000_circles_membership_audit.sql`
+  adds triggers that append the row in the same transaction as the change: a join, a
+  role change, a removal and a circle rename are now recorded with the actor taken from
+  the session, never from the request. The payload is ids, enums and field names — never
+  free text a family typed.
+- **The owner could demote themselves**, leaving a circle with an `owner_id` and no owner
+  membership row: every `has_circle_role(… 'owner')` check would then answer no and
+  nobody could run the circle again. A trigger refuses it.
+- **`plan_limits.max_members` was never read**, so a free circle could hold any number of
+  members. A trigger now refuses a new member past the cap, and never removes anyone
+  already in the circle.
+- **`pnpm db:migrate` re-ran migration 1 on any project whose migrations had been applied
+  by hand** (the Supabase SQL editor records the timestamp alone). It now matches on the
+  timestamp prefix, which is what the CLI records.
+
+### Added
+
 - **Task 5 — onboarding, three screens.** A signed-in person with no family circle is
   taken through `You` (their display name, prefilled from the identity provider or the
   email local part), `Who you're caring for` (first name and a five-word relationship

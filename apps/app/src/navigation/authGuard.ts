@@ -17,7 +17,12 @@ export const HOME_PATH = '/';
  * are how the owner and QA look at every state on purpose. They stay reachable
  * in any session state.
  */
-export const HIDDEN_ROUTES: readonly string[] = ['gallery', 'auth-preview', 'onboarding-preview'];
+export const HIDDEN_ROUTES: readonly string[] = [
+  'gallery',
+  'auth-preview',
+  'onboarding-preview',
+  'circles-preview',
+];
 
 export interface GuardInput {
   readonly status: 'loading' | 'signedOut' | 'signedIn' | 'notConfigured';
