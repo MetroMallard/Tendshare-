@@ -184,3 +184,8 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
   one narrow write path in the RLS policy plus the capability map, and proves it with a
   hosted RLS test: a helper's tick succeeds and writes an audit row, and every other
   write is refused.
+- **2026-11-06** — (owner) **App icon chosen: option B, "two people, one heart"** — teal on
+  navy, the designer's pick. It is the app icon, the splash screen and the favicon; the
+  splash keeps the mark on navy with the name beneath it. The three candidates were shown
+  at true home-screen size (60pt on a 390pt screen) before the decision. Store-listing
+  artwork and the printed material derive from this one mark.
