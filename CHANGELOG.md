@@ -8,6 +8,54 @@ All notable changes to Tendshare are recorded here. The format follows
 
 ### Added
 
+- **Task 7 — the person profile (in review, PR open).**
+  - **Schema, forward-only** (`20261106120000_care_recipient_profile.sql`):
+    `care_recipients` gains `preferred_name`, `phone` and `notes` (it already had
+    `date_of_birth` and `photo_url`), plus three new tables — `care_recipient_contacts`
+    (doctors, pharmacies and other, one table for both lists), `care_recipient_conditions`
+    (allergies and conditions exactly as the family typed them: no picklist, no severity,
+    no advice) and `care_recipient_insurance` (plan, member ID, group number, card photo
+    path). RLS enabled **and forced** on all three, policies built on the existing
+    `has_circle_role()` helpers, no recursion, and **no plan-limit trigger**: nothing in
+    the brief caps doctors, allergies or cards.
+  - **The visiting helper's boundary, in the database.** `canSeeCareDetails` is a new
+    capability — true for owner, family member and view-only, false for `visiting_helper`.
+    The three new tables have no policy for that role, and `care_recipients.notes` is not
+    granted to any client role at all: it is reachable only through
+    `care_recipient_notes()`, which refuses a helper. Rows stay readable for name, photo
+    and relationship; the note does not.
+  - **Audit as it ships.** `SECURITY DEFINER` triggers with pinned `search_path` and
+    revoked execute append an `audit_log` row in the same transaction as every write to
+    the profile, its contacts, conditions and insurance cards. Payloads are ids, enums and
+    **field names** only — `{"fields":["preferred_name","date_of_birth"]}`, never a value,
+    so an allergy never lands in the log.
+  - **Private storage** (`20261106120100_care_media_bucket.sql`): the `care-media` bucket,
+    `public = false`, 10 MB image limit, object paths prefixed with the circle id, and
+    `storage.objects` policies scoped to circle membership through `has_circle_role()`.
+    No policy for `anon`; signed URLs live five minutes. `Avatar` now accepts a signed
+    `uri` and falls back to initials.
+  - **App modules** (pure and tested): profile loaders with a column-by-column read of
+    `care_recipients`; form validation for basics, contacts, conditions and cards; the
+    edit diff that decides what a save actually sends and which field names the audit row
+    will carry; the audit vocabulary with a guard that refuses a value in a summary; and
+    the signed-URL/path helper (`buildPath`, `isCareMediaPath`, `isSignedUrlStale`).
+  - **`ProfileView`**: the five sections in order (basics → doctors → pharmacies →
+    allergies and conditions → insurance cards), built only from `@tendshare/ui`, with
+    loading skeletons, per-section empty states that say what the section is for, one
+    error with a retry, an offline notice, a read-only notice for view-only, and the
+    helper's narrower screen. The allergies section repeats onboarding's "This isn't
+    medical information" notice.
+  - **Hosted RLS suite** (`tests/rls/care-profile.rls.test.ts`, 20 tests): a family member
+    adds a doctor and the audit row records field names without the name or the number;
+    an allergy is audited as `{"kind":"allergy","fields":["kind","label"]}`; view-only is
+    refused every write; a visiting helper reads no contacts, conditions or cards, cannot
+    read the note by column or by function, and writes nothing; another circle reads
+    nothing; and the bucket refuses a signed URL to a helper, a stranger and a signed-out
+    visitor while serving the care team.
+  - **Not yet in this pull request:** the `/profile` route and its editing sheets, the
+    entry points from `/members` and Today, photo and card upload in the app, and the
+    390px screenshots. The schema, RLS, audit trail and tests are complete; the screen is
+    built and typed but not yet wired to navigation.
 - **Task 6 — care circles, the four roles and the circle switcher.**
   - **One capability map** (`src/circles/roles.ts`) is the only place that decides what
     a role may do: `owner`, `family_member`, `view_only`, `visiting_helper` → fifteen

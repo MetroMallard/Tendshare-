@@ -25,6 +25,28 @@
 | **Sentry**                 | Crash and error reporting                                  | Stack traces and device info, with health fields scrubbed before send                                                                                                                                                                                           | No                                                                                                                           |
 | **Expo / EAS**             | Build pipeline and push notification delivery              | Push tokens and notification payloads                                                                                                                                                                                                                           | **Lock-screen payloads must contain no health details by default.**                                                          |
 
+## Storage and photos (Task 7)
+
+**Supabase Storage** is part of the Supabase row above — the same project, the same
+contract, no new third party. What it now holds:
+
+- **One private bucket, `care-media`** (`public = false`, 10 MB image limit, JPEG / PNG /
+  WebP / HEIC only). It holds the photo of the person being cared for and photos of
+  insurance cards. **No public objects, ever.**
+- **Reads go through signed URLs with a five-minute expiry**
+  (`SIGNED_URL_TTL_SECONDS`). Creating a signature is itself an RLS-checked request, so a
+  visiting helper, a member of another circle and a signed-out visitor are refused a URL
+  rather than handed a short-lived one.
+- **Object paths start with the circle id**, and every `storage.objects` policy asks
+  `has_circle_role()` about that first folder. There is no policy for `anon`.
+- **No analytics or error SDK ever receives a photo.** PostHog and Sentry are not called
+  anywhere in the upload path; nothing about an image — not its path, not its size, not
+  the fact that one exists — is put in an event or an error message. A failed upload
+  becomes one of four fixed sentences in `src/profile/profileActions.ts`.
+- **Deleting a card deletes its object** (best effort): Storage is not cascaded by SQL, so
+  the app removes the object after the row. Full account deletion must remove the
+  circle's folder — added to the open items below.
+
 ## Not yet reviewed
 
 Any service not in the table above. Do not add one without a row here and the owner's decision.
@@ -35,6 +57,7 @@ Any service not in the table above. Do not add one without a row here and the ow
 - Confirm Expo push payload contents before notifications ship (Task 15).
 - ~~Add the audit log of views and changes to sensitive records, and confirm where it is stored.~~ **Done (Task 3).** The audit log is `public.audit_log` in the same Supabase Postgres — no third party, so nothing new to review. It is append-only: Row Level Security is enabled and forced, no client role holds UPDATE or DELETE, and a trigger refuses every UPDATE and TRUNCATE except the foreign key that clears the actor when an account is deleted. It stores a minimal non-health payload (ids, counts, field names) capped at 512 bytes, never free text or health content.
 - Data export and full account/data deletion must cover Supabase Storage as well as Postgres — verify with a real deletion test before Phase 5.
+- **Task 7:** confirm that deleting a circle or an account removes its `care-media` objects. Today only an insurance card's photo is removed when the card is deleted.
 
 ## Auth data flow (Task 4)
 
@@ -49,6 +72,7 @@ on-signup trigger — display name and optional avatar path, nothing else. The a
 to is held in memory only, never persisted, and cleared on sign-out and on relaunch.
 
 **What never leaves.**
+
 - The **service role key** is never in the app, never in a `.env` file in this repo, never in a
   bundle. `readSupabaseConfig` refuses any key whose JWT role is not `anon`, so a paste mistake fails
   loudly instead of shipping a policy bypass.

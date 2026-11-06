@@ -26,6 +26,7 @@ import type { CircleRole } from './circleState';
 const EXPECTED: Readonly<Record<CircleRole, readonly Capability[]>> = {
   owner: [
     'canSeeCareRecipient',
+    'canSeeCareDetails',
     'canEditCareRecipient',
     'canSeeMeds',
     'canEditMeds',
@@ -43,6 +44,7 @@ const EXPECTED: Readonly<Record<CircleRole, readonly Capability[]>> = {
   ],
   family_member: [
     'canSeeCareRecipient',
+    'canSeeCareDetails',
     'canEditCareRecipient',
     'canSeeMeds',
     'canEditMeds',
@@ -55,7 +57,13 @@ const EXPECTED: Readonly<Record<CircleRole, readonly Capability[]>> = {
     'canReadAuditLog',
     'canSeeRoster',
   ],
-  view_only: ['canSeeCareRecipient', 'canSeeMeds', 'canSeeDocuments', 'canSeeRoster'],
+  view_only: [
+    'canSeeCareRecipient',
+    'canSeeCareDetails',
+    'canSeeMeds',
+    'canSeeDocuments',
+    'canSeeRoster',
+  ],
   visiting_helper: ['canSeeCareRecipient', 'canSeeMeds', 'canCheckOffMeds'],
 };
 
@@ -100,6 +108,19 @@ describe('the capability map', () => {
       for (const capability of writes) {
         expect(capabilitiesOf(role)[capability], `${role} must not have ${capability}`).toBe(false);
       }
+    }
+  });
+
+  it('keeps the care details away from a visiting helper', () => {
+    // The owner's directive: a helper sees the person they are helping — name,
+    // photo, relationship — and nothing about their health. The three profile
+    // tables have no RLS policy for this role, so this is the same answer the
+    // database gives rather than a UI preference.
+    expect(capabilitiesOf('visiting_helper').canSeeCareRecipient).toBe(true);
+    expect(capabilitiesOf('visiting_helper').canSeeCareDetails).toBe(false);
+
+    for (const role of ['owner', 'family_member', 'view_only'] as const) {
+      expect(capabilitiesOf(role).canSeeCareDetails, `${role} should see care details`).toBe(true);
     }
   });
 
