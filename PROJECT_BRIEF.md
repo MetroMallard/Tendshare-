@@ -121,7 +121,7 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 | 5   | Onboarding, 3 screens: your name and photo → who you're caring for → invite family                                                                          | Phase 1 | ✅ Done — PR #5. 3 screens with real writes, resumable draft and a circle guard; initials only, invites deferred to Task 11                    |
 | 6   | Care circles, the four roles, and the circle switcher                                                                                                       | Phase 1 | ✅ Done — PR #6. Capability map, device-local switcher, members screen with role changes and removal; membership changes write the audit trail |
 | 7   | Person profile: basics, doctors and pharmacies, allergies and conditions as typed, insurance cards                                                          | Phase 2 | ✅ Done — PR #7. Private `care-media` bucket with signed URLs, three new tables forced under RLS, audit rows in the same PR, and the visiting helper narrowed to photo + full name + relationship only |
-| 8   | Med list, Today check-off with who confirmed and when, refill reminders, change history                                                                     | Phase 2 | ⬜ Not started                                                                                                                                 |
+| 8   | Med list, Today check-off with who confirmed and when, refill reminders, change history                                                                     | Phase 2 | 🟡 Designed, build next — schema/RLS/audit settled (doses derived from the schedule, one check-off row per slot); a visiting helper reads the med list so they can tick, and may write only their own tick |
 | 9   | Calendar and coverage: appointment owners, "I'll take it", swap requests, visit notes, phone calendar sync                                                  | Phase 2 | ⬜ Not started                                                                                                                                 |
 | 10  | Updates feed: posts, photos, reactions, after-appointment notes, weekly summary                                                                             | Phase 2 | ⬜ Not started                                                                                                                                 |
 | 11  | Document vault: folders, any file type, camera scan to PDF, owner-only locked folders, expiry reminders                                                     | Phase 2 | ⬜ Not started                                                                                                                                 |
@@ -189,3 +189,22 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
   splash keeps the mark on navy with the name beneath it. The three candidates were shown
   at true home-screen size (60pt on a 390pt screen) before the decision. Store-listing
   artwork and the printed material derive from this one mark.
+- **2026-11-06** — **A visiting helper sees the med list, and that is not a contradiction.**
+  Task 7 narrowed a helper to the person's photo, full name and relationship. Task 8 adds
+  that a helper also sees the med list, because a helper cannot tick a dose they cannot
+  see — and the owner's directive is precisely that they may tick. The line to hold is
+  therefore: *"the person's name, photo and relationship, plus the med list they are asked
+  to check off — and nothing else."* They still get no care details (phone, date of birth,
+  preferred name, notes), no doctors, allergies, conditions or insurance, no documents, no
+  money, no roster, no audit log and no photo of a medicine bottle.
+- **2026-11-06** — **A tick is a fact, not a claim.** The check-off row's `taken_by` is set
+  by a database trigger from the session, never from the request body, so a helper cannot
+  attribute a dose to someone else. A mistaken tick is corrected by deleting it and
+  ticking again — there is no update path for a helper — so both facts (the delete and the
+  new tick) reach the audit trail rather than one silently rewriting the other.
+- **2026-11-06** — **Dose instances are derived, not stored.** The schedule holds the
+  clock times the family typed; the only row a dose ever creates is its check-off, keyed
+  by med, date and time. Nothing has to run at midnight to create tomorrow's rows (there
+  is no scheduler, and a client may be offline), so a dose can never render as
+  "not scheduled" when it is really "not taken" — the worst failure this product has.
+  There is no quantity or dose-amount column anywhere, and there must not be one.
