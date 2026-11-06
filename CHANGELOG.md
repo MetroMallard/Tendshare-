@@ -6,6 +6,35 @@ All notable changes to Tendshare are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Task 5 — onboarding, three screens.** A signed-in person with no family circle is
+  taken through `You` (their display name, prefilled from the identity provider or the
+  email local part), `Who you're caring for` (first name and a five-word relationship
+  picker) and `Invite family` (addresses, or a prominent honest skip), then lands on
+  Today.
+  - **Real writes, in order, under RLS:** `profiles.display_name` (an UPDATE — the
+    signup trigger owns the row), then `circles` with the caller as owner, then
+    `care_recipients`. Every write asks for the row back.
+  - **Rollback-sane.** If the person cannot be added to a circle that was just created,
+    the circle is deleted again, so a retry makes one circle rather than two. If the
+    undo itself fails, the circle id is kept in the draft and the retry adopts it.
+  - **Resumable.** The draft (three answers, never health data) is written to the
+    keychain on device and `localStorage` on web as it is typed, with the step it was
+    on, and there is a "Start over".
+  - **Guarded** by `resolveOnboardingRedirect`, a pure function with a table of tests: a
+    person who has a circle never sees onboarding again, and a person with none is never
+    dropped into an empty app.
+  - **Plan limits** are surfaced as plain language ("Your plan covers one person"), never
+    a raw Postgres message.
+  - **Invites are not built** (Task 11). Screen 3 says plainly that nothing has been
+    sent, keeps the addresses on the device behind `features.invitesEnabled`, and makes
+    "Invite them later" the primary action when no address has been added.
+  - New design-system pieces: `OptionList` (a vertical radio group for choices that do
+    not fit a segmented control) and a `keyboardAware` frame on `Screen`.
+  - Hidden `/onboarding-preview` renders every state of the three screens at 390px in
+    both schemes, built from the real view components.
+
 ### Fixed
 
 - **Creating a circle with `.insert(...).select()` was refused by RLS.** That call —

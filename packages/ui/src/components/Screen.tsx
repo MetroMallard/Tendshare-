@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react';
-import { ScrollView, View, useWindowDimensions } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 
 import { useTheme } from '../ThemeProvider';
 import type { EdgeInsets } from '../primitives';
@@ -12,6 +18,15 @@ export interface ScreenProps {
   readonly scroll?: boolean;
   /** Pinned under the content and above the tab bar. */
   readonly footer?: ReactNode;
+  /**
+   * Keep the content and the footer clear of the on-screen keyboard.
+   *
+   * On for every screen with an input. iOS shrinks the frame by the keyboard
+   * height so the pinned footer rises with it and the focused field is scrolled
+   * into view; Android resizes the window itself (`adjustResize`), so the frame
+   * is already correct and this is inert there. Web has no keyboard inset.
+   */
+  readonly keyboardAware?: boolean;
   readonly testID?: string;
 }
 
@@ -23,7 +38,14 @@ export interface ScreenProps {
  * keep the first and last line clear of the notch and the home indicator, and
  * the background is the warm `bg` token rather than whatever a screen felt like.
  */
-export function Screen({ children, insets, scroll = true, footer, testID }: ScreenProps) {
+export function Screen({
+  children,
+  insets,
+  scroll = true,
+  footer,
+  keyboardAware,
+  testID,
+}: ScreenProps) {
   const theme = useTheme();
   const { width } = useWindowDimensions();
 
@@ -40,9 +62,15 @@ export function Screen({ children, insets, scroll = true, footer, testID }: Scre
   const column = { maxWidth: theme.layout.maxContentWidth, width: '100%' } as const;
 
   return (
-    <View testID={testID} style={{ backgroundColor: theme.colors.bg, flex: 1 }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      enabled={keyboardAware === true && Platform.OS === 'ios'}
+      style={{ backgroundColor: theme.colors.bg, flex: 1 }}
+      testID={testID}
+    >
       {scroll ? (
         <ScrollView
+          automaticallyAdjustKeyboardInsets={keyboardAware === true && Platform.OS === 'ios'}
           contentContainerStyle={{
             alignItems: 'center',
             flexGrow: 1,
@@ -82,6 +110,6 @@ export function Screen({ children, insets, scroll = true, footer, testID }: Scre
           <View style={[column, { alignSelf: 'center' }]}>{footer}</View>
         </View>
       ) : null}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
