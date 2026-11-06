@@ -24,7 +24,10 @@ export function OnboardingNotice({ title, message, tone = 'info', testID }: Onbo
   const theme = useTheme();
 
   const palette = {
-    info: { bg: theme.colors.brandSoft, fg: theme.colors.brandSoftFg, border: theme.colors.brand },
+    // The info border used to be full-strength `brand`, which in dark mode made
+    // a quiet explanatory note louder than the primary button beside it. A
+    // hairline is the right weight for "here is how it works".
+    info: { bg: theme.colors.brandSoft, fg: theme.colors.brandSoftFg, border: theme.colors.border },
     warning: {
       bg: theme.colors.warningSoft,
       fg: theme.colors.warningSoftFg,
@@ -59,7 +62,12 @@ export function OnboardingNotice({ title, message, tone = 'info', testID }: Onbo
       <Text style={{ color: palette.fg }} variant="bodyStrong">
         {title}
       </Text>
-      <Text tone="secondary" variant="caption">
+      {/*
+        The body is the sentence you actually read, so it is body text at 17px
+        and coloured from the notice's own tone. It used to be a 15px caption in
+        the page's grey, which put grey-green copy under a red title.
+      */}
+      <Text style={{ color: palette.fg }} variant="body">
         {message}
       </Text>
     </View>

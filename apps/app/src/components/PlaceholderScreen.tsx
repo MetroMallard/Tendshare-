@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
+import { View } from 'react-native';
 
-import { brand, Card, EmptyState, ScreenHeader, type IconComponent } from '@tendshare/ui';
+import { brand, Card, EmptyState, ScreenHeader, useTheme, type IconComponent } from '@tendshare/ui';
 
 import { useCircle } from '../circles/CircleProvider';
 import { circleDisplayName } from '../circles/activeCircle';
@@ -46,6 +47,7 @@ export function PlaceholderScreen({
   children,
 }: PlaceholderScreenProps) {
   const { active } = useCircle();
+  const theme = useTheme();
   const eyebrow = active === null ? brand.name : circleDisplayName(active);
 
   return (
@@ -56,15 +58,18 @@ export function PlaceholderScreen({
         title={title}
         titleTestID={`${testID}-heading`}
       />
-      {children}
-      <Card padding="sm">
-        <EmptyState
-          body={placeholderBody}
-          headline={placeholderTitle}
-          icon={icon}
-          testID={`${testID}-placeholder`}
-        />
-      </Card>
+      {/* One gap, one rhythm: `Section` no longer carries its own bottom margin. */}
+      <View style={{ gap: theme.space.md }}>
+        {children}
+        <Card padding="sm">
+          <EmptyState
+            body={placeholderBody}
+            headline={placeholderTitle}
+            icon={icon}
+            testID={`${testID}-placeholder`}
+          />
+        </Card>
+      </View>
     </Screen>
   );
 }

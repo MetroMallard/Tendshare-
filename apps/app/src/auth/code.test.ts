@@ -1,6 +1,27 @@
 import { describe, expect, it } from 'vitest';
 
-import { digitsOnly, isCompleteCode, isPlausibleEmail, normaliseEmail } from './code';
+import {
+  CODE_PLACEHOLDER,
+  digitsOnly,
+  isCompleteCode,
+  isPlausibleEmail,
+  normaliseEmail,
+} from './code';
+
+/**
+ * The hint in an empty code field. `123456` was a *value* sitting in a field
+ * that looked filled in, above a disabled "Sign in" — the screen read as broken
+ * before anyone had typed a character.
+ */
+describe('the code placeholder', () => {
+  it('carries no digits, so it cannot read as a code already typed', () => {
+    expect(CODE_PLACEHOLDER).not.toMatch(/\d/);
+  });
+
+  it('describes the shape of the answer in words', () => {
+    expect(CODE_PLACEHOLDER.toLowerCase()).toContain('digit');
+  });
+});
 
 describe('email', () => {
   it('normalises case and stray spaces', () => {

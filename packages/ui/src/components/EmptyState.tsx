@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { useTheme } from '../ThemeProvider';
 import type { IconComponent } from '../primitives';
 import { Button } from './Button';
+import { groupAsOneElement } from './grouping';
 import { Text } from './Text';
 
 export interface EmptyStateProps {
@@ -22,6 +23,12 @@ export interface EmptyStateProps {
  *
  * It never scolds and never apologises: a headline, one plain sentence and one
  * obvious next step, centred with plenty of room around it.
+ *
+ * When there is an action, the block is *not* one accessibility element — a
+ * container marked `accessible` hides everything inside it from a screen
+ * reader, so "Try again" would be visible, tappable, and unreachable by
+ * VoiceOver. The headline and the sentence are read as their own elements
+ * instead, and the button keeps its own label.
  */
 export function EmptyState({
   icon: Icon,
@@ -32,11 +39,13 @@ export function EmptyState({
   testID,
 }: EmptyStateProps) {
   const theme = useTheme();
+  const hasAction = actionLabel !== undefined && onAction !== undefined;
+  const groupsAsOne = groupAsOneElement(hasAction);
 
   return (
     <View
-      accessible
-      accessibilityLabel={`${headline}. ${body}`}
+      accessible={groupsAsOne}
+      accessibilityLabel={groupsAsOne ? `${headline}. ${body}` : undefined}
       testID={testID}
       style={{
         alignItems: 'center',
@@ -67,7 +76,7 @@ export function EmptyState({
         {body}
       </Text>
 
-      {actionLabel && onAction ? (
+      {hasAction ? (
         <View style={{ marginTop: theme.space.xs, minWidth: '60%' }}>
           <Button fullWidth label={actionLabel} onPress={onAction} size="medium" />
         </View>
