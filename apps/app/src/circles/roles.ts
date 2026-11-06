@@ -28,6 +28,17 @@ import type { CircleRole } from './circleState';
 export type Capability =
   /** See the person being cared for. */
   | 'canSeeCareRecipient'
+  /**
+   * See their care details: doctors, pharmacies, allergies, conditions and
+   * insurance cards — and the free-text note on the profile.
+   *
+   * Separate from `canSeeCareRecipient` because the two are different answers
+   * for a visiting helper: they see *who* they are helping and nothing about
+   * what is wrong with them. The database says the same thing — the three
+   * profile tables have no policy for `visiting_helper`, and the note column is
+   * not granted to any client role at all.
+   */
+  | 'canSeeCareDetails'
   /** Edit their basics: name, relationship, doctors, allergies. */
   | 'canEditCareRecipient'
   /** See the medication list. */
@@ -67,6 +78,7 @@ export type Capabilities = Readonly<Record<Capability, boolean>>;
  */
 export const CAPABILITY_LABELS: Readonly<Record<Capability, string>> = {
   canSeeCareRecipient: 'See who you’re caring for',
+  canSeeCareDetails: 'See doctors, allergies and insurance cards',
   canEditCareRecipient: 'Edit their details',
   canSeeMeds: 'See the medication list',
   canEditMeds: 'Add and change medications',
@@ -86,6 +98,7 @@ export const CAPABILITY_LABELS: Readonly<Record<Capability, string>> = {
 /** Every capability, in the order a role's description lists them. */
 export const CAPABILITY_ORDER: readonly Capability[] = [
   'canSeeCareRecipient',
+  'canSeeCareDetails',
   'canSeeMeds',
   'canCheckOffMeds',
   'canEditMeds',
@@ -105,6 +118,7 @@ export const CAPABILITY_ORDER: readonly Capability[] = [
 /** Nobody can do anything. The answer when there is no circle yet. */
 export const NO_CAPABILITIES: Capabilities = {
   canSeeCareRecipient: false,
+  canSeeCareDetails: false,
   canEditCareRecipient: false,
   canSeeMeds: false,
   canEditMeds: false,
@@ -132,6 +146,7 @@ export interface RoleInfo {
 
 const OWNER_CAPABILITIES: Capabilities = {
   canSeeCareRecipient: true,
+  canSeeCareDetails: true,
   canEditCareRecipient: true,
   canSeeMeds: true,
   canEditMeds: true,
@@ -170,6 +185,8 @@ const FAMILY_MEMBER_CAPABILITIES: Capabilities = {
 const VIEW_ONLY_CAPABILITIES: Capabilities = {
   ...NO_CAPABILITIES,
   canSeeCareRecipient: true,
+  // The care records are what view-only is for; the family's money is not.
+  canSeeCareDetails: true,
   canSeeMeds: true,
   canManageCalendar: false,
   canSeeDocuments: true,
@@ -189,6 +206,12 @@ const VIEW_ONLY_CAPABILITIES: Capabilities = {
 const VISITING_HELPER_CAPABILITIES: Capabilities = {
   ...NO_CAPABILITIES,
   canSeeCareRecipient: true,
+  // The owner's directive: a helper sees the person they are helping — name,
+  // photo, relationship — and nothing about their health. No doctors, no
+  // pharmacies, no allergies, no conditions, no insurance cards, no note. The
+  // three profile tables have no RLS policy for this role, so the screen and the
+  // database agree.
+  canSeeCareDetails: false,
   canSeeMeds: true,
   canCheckOffMeds: true,
   // No roster: `circle_members_select_member` shows a helper their own row only.
@@ -221,7 +244,8 @@ export const ROLES: Readonly<Record<CircleRole, RoleInfo>> = {
   visiting_helper: {
     role: 'visiting_helper',
     label: 'Visiting helper',
-    description: 'A paid aide or a neighbour. Sees the plan and checks off what they did.',
+    description:
+      'A paid aide or a neighbour. Sees who they are helping and checks off what they did — not their medical details.',
     capabilities: VISITING_HELPER_CAPABILITIES,
   },
 };

@@ -2,7 +2,18 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 
-import { Button, Card, ConfirmSheet, EmptyState, OptionList, ScreenHeader, Sheet, Text, TextField, useTheme } from '@tendshare/ui';
+import {
+  Button,
+  Card,
+  ConfirmSheet,
+  EmptyState,
+  OptionList,
+  ScreenHeader,
+  Sheet,
+  Text,
+  TextField,
+  useTheme,
+} from '@tendshare/ui';
 import { Users } from 'lucide-react-native';
 
 import { Screen } from '../src/components/Screen';
@@ -24,12 +35,7 @@ import {
   validateCircleName,
   type MemberProblem,
 } from '../src/circles/memberActions';
-import {
-  ASSIGNABLE_ROLES,
-  CIRCLE_NAME_MAX_LENGTH,
-  ROLES,
-  roleLabel,
-} from '../src/circles/roles';
+import { ASSIGNABLE_ROLES, CIRCLE_NAME_MAX_LENGTH, ROLES, roleLabel } from '../src/circles/roles';
 import { MembersView } from '../src/circles/components/MembersView';
 import type { CircleRole } from '../src/circles/circleState';
 import { getSupabaseClient } from '../src/lib/supabase';
@@ -230,6 +236,9 @@ export default function MembersScreen() {
         members={members}
         offline={!online}
         onBack={goBack}
+        onOpenRecipient={() => {
+          router.push('/profile');
+        }}
         onRename={() => {
           setDraftName(active.name ?? '');
           setNameError(null);

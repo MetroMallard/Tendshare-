@@ -33,8 +33,7 @@ const MEMBERS: readonly CircleMember[] = [
   { profileId: 'p4', role: 'visiting_helper', displayName: 'Grace Adeyemi', isSelf: false },
 ];
 
-const LONG_NAME =
-  'Margaret’s circle — the Joneses and everyone who helps out on Thursdays';
+const LONG_NAME = 'Margaret’s circle — the Joneses and everyone who helps out on Thursdays';
 
 const ONE_CIRCLE: readonly CircleSummary[] = [
   {
@@ -77,6 +76,7 @@ function membersView(options: {
       members={options.members === undefined ? MEMBERS : options.members}
       offline={options.offline ?? false}
       onBack={noop}
+      onOpenRecipient={noop}
       onRename={noop}
       onRetry={noop}
       onSelectMember={noop}
@@ -110,8 +110,7 @@ function switcherView(options: {
         />
       </Card>
       <Text tone="tertiary" variant="caption">
-        One circle: no switcher, just the name. Two: the same row becomes the way
-        to change it.
+        One circle: no switcher, just the name. Two: the same row becomes the way to change it.
       </Text>
     </Screen>
   );
@@ -163,8 +162,7 @@ const STATES: readonly StateFixture[] = [
   {
     key: 'helper',
     label: 'Members — visiting helper',
-    render: () =>
-      membersView({ role: 'visiting_helper', members: [MEMBERS[3]!] }),
+    render: () => membersView({ role: 'visiting_helper', members: [MEMBERS[3]!] }),
   },
   {
     key: 'loading',
@@ -208,10 +206,7 @@ const STATES: readonly StateFixture[] = [
     label: 'Switcher — long name',
     render: () =>
       switcherView({
-        circles: [
-          { ...TWO_CIRCLES[1]!, circleId: 'c2' },
-          ...ONE_CIRCLE,
-        ],
+        circles: [{ ...TWO_CIRCLES[1]!, circleId: 'c2' }, ...ONE_CIRCLE],
       }),
   },
   {

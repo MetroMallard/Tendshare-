@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { Modal, Pressable, ScrollView, View } from 'react-native';
 
 import { useTheme } from '../ThemeProvider';
 import type { EdgeInsets } from '../primitives';
@@ -76,6 +76,7 @@ export function Sheet({
               borderTopRightRadius: theme.radius.panel,
               borderWidth: 1,
               gap: theme.space.sm,
+              maxHeight: '92%',
               maxWidth: theme.layout.sheetMaxWidth,
               paddingBottom: theme.space.md + bottom,
               paddingHorizontal: theme.space.md,
@@ -101,13 +102,27 @@ export function Sheet({
             {title}
           </Text>
 
-          {description ? (
-            <Text tone="secondary" variant="body">
-              {description}
-            </Text>
-          ) : null}
+          {/*
+            The body scrolls, not the sheet. A profile form is six fields on a
+            390pt phone, and with no scroll container the sheet grew taller than
+            the screen, pushed its own title off the top edge and gave no way to
+            reach the fields underneath. The title and the footer stay put, so
+            Save and Cancel are always where the thumb expects them.
+          */}
+          <ScrollView
+            bounces={false}
+            contentContainerStyle={{ gap: theme.space.sm }}
+            keyboardShouldPersistTaps="handled"
+            style={{ flexShrink: 1 }}
+          >
+            {description ? (
+              <Text tone="secondary" variant="body">
+                {description}
+              </Text>
+            ) : null}
 
-          {children}
+            {children}
+          </ScrollView>
 
           <View style={{ gap: theme.space.xs, marginTop: theme.space['2xs'] }}>
             {footer ?? <Button label="Close" onPress={onClose} variant="secondary" fullWidth />}

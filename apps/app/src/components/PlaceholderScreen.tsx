@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { brand, Card, EmptyState, ScreenHeader, type IconComponent } from '@tendshare/ui';
 
 import { useCircle } from '../circles/CircleProvider';
@@ -15,6 +17,12 @@ export interface PlaceholderScreenProps {
   /** Empty-state body: one line, plain. */
   placeholderBody: string;
   testID: string;
+  /**
+   * Real content for a tab that is no longer only a placeholder, drawn between
+   * the header and the empty state. Today uses it for the person the family is
+   * caring for; the rest of the tab arrives in a later task.
+   */
+  children?: ReactNode;
 }
 
 /**
@@ -35,6 +43,7 @@ export function PlaceholderScreen({
   placeholderTitle,
   placeholderBody,
   testID,
+  children,
 }: PlaceholderScreenProps) {
   const { active } = useCircle();
   const eyebrow = active === null ? brand.name : circleDisplayName(active);
@@ -47,6 +56,7 @@ export function PlaceholderScreen({
         title={title}
         titleTestID={`${testID}-heading`}
       />
+      {children}
       <Card padding="sm">
         <EmptyState
           body={placeholderBody}

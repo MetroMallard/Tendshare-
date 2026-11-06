@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 
 import { useTheme } from '../ThemeProvider';
 import { Text } from './Text';
@@ -42,11 +42,22 @@ export interface AvatarProps {
   /** Used for the initials and the tint. Nothing is fetched. */
   readonly name: string;
   readonly size?: AvatarSize;
+  /**
+   * A photo to show instead of the initials.
+   *
+   * A **signed URL with a short expiry** — never a public link, never a stored
+   * URL. The component fetches nothing and knows nothing about buckets: when the
+   * URL is missing or stale the initials are the fallback, so a photo that
+   * cannot load leaves a person on screen rather than a broken image.
+   */
+  readonly uri?: string | null;
+  /** Overrides the spoken name when the row already says it. */
+  readonly accessibilityLabel?: string;
   readonly testID?: string;
 }
 
-/** A person, as initials on a soft tint. No photos to upload, no image calls. */
-export function Avatar({ name, size = 'medium', testID }: AvatarProps) {
+/** A person: their photo when there is one, initials on a soft tint when not. */
+export function Avatar({ name, size = 'medium', uri, accessibilityLabel, testID }: AvatarProps) {
   const theme = useTheme();
 
   const tints = [
@@ -58,19 +69,39 @@ export function Avatar({ name, size = 'medium', testID }: AvatarProps) {
   ];
 
   const tint = tints[toneIndex(name)] ?? tints[0];
+  const diameter = DIAMETER[size];
+
+  if (typeof uri === 'string' && uri.length > 0) {
+    return (
+      <Image
+        accessibilityLabel={accessibilityLabel ?? name}
+        accessible
+        source={{ uri }}
+        testID={testID}
+        style={{
+          backgroundColor: theme.colors.surfaceSunken,
+          borderColor: theme.colors.border,
+          borderRadius: theme.radius.pill,
+          borderWidth: 1,
+          height: diameter,
+          width: diameter,
+        }}
+      />
+    );
+  }
 
   return (
     <View
       accessible
-      accessibilityLabel={name}
+      accessibilityLabel={accessibilityLabel ?? name}
       testID={testID}
       style={{
         alignItems: 'center',
         backgroundColor: tint?.bg,
         borderRadius: theme.radius.pill,
-        height: DIAMETER[size],
+        height: diameter,
         justifyContent: 'center',
-        width: DIAMETER[size],
+        width: diameter,
       }}
     >
       <Text
