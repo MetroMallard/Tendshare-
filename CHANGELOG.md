@@ -33,6 +33,16 @@ All notable changes to Tendshare are recorded here. The format follows
 
 ### Fixed
 
+- **The role description on a member's row was cut off mid-sentence.** "Runs the circle.
+  Can change anything, …" — the one sentence that tells a family member what someone is
+  allowed to do, clipped because `ListRow`'s subtitle shared its width with the role badge
+  and clamped at two lines. `ListRow` gains a documented `subtitleBelow` prop: the name and
+  the badge keep the first line, the description gets the full width underneath and wraps
+  to as many lines as it needs. Used on the roster rows and shown in the hidden gallery.
+  `ListRow` also takes `accessibilityLabel`, so a row that shows a badge can say the role
+  as well as the description out loud (`memberRowSpokenLabel` in `roles.ts`). The header
+  eyebrow is now one line, truncated — a long circle name can no longer wrap and push a
+  screen down.
 - **Nothing wrote to `audit_log` on its own.** The plan promises an audit trail of
   changes to sensitive records, and until now every row was one a client chose to write
   by calling `log_audit_event()`. Migration `20261105120000_circles_membership_audit.sql`

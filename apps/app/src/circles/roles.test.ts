@@ -13,6 +13,7 @@ import {
   capabilitiesFor,
   capabilitySummary,
   isCircleRole,
+  memberRowSpokenLabel,
   roleDescription,
   roleLabel,
   roleWithCount,
@@ -241,5 +242,48 @@ describe('isCircleRole', () => {
     expect(isCircleRole('admin')).toBe(false);
     expect(isCircleRole(null)).toBe(false);
     expect(isCircleRole(3)).toBe(false);
+  });
+});
+
+describe('the spoken label for a roster row', () => {
+  it('says the name, the role and the whole description', () => {
+    for (const role of ALL_ROLES) {
+      const label = memberRowSpokenLabel({ displayName: 'Margaret Chen', role });
+
+      expect(label).toContain('Margaret Chen');
+      expect(label).toContain(ROLES[role].label);
+      // The description is the sentence that explains what the person may do.
+      // A row that clips it on screen is a bug; a label that drops it is worse.
+      expect(label).toContain(ROLES[role].description);
+    }
+  });
+
+  it('says "you" for the reader’s own row, and only for it', () => {
+    expect(memberRowSpokenLabel({ displayName: 'Sam Okonkwo', isSelf: true, role: 'owner' })).toBe(
+      `Sam Okonkwo, you. Owner. ${ROLES.owner.description}`,
+    );
+
+    expect(memberRowSpokenLabel({ displayName: 'Sam Okonkwo', role: 'owner' })).not.toContain(
+      'you.',
+    );
+  });
+
+  it('never reads out a raw role enum', () => {
+    for (const role of ALL_ROLES) {
+      const label = memberRowSpokenLabel({ displayName: 'Priya Raman', role });
+
+      expect(label).not.toContain('_');
+    }
+  });
+
+  it('every description is a whole sentence, never an ellipsis', () => {
+    for (const role of ALL_ROLES) {
+      const description = ROLES[role].description;
+
+      expect(description.length).toBeGreaterThan(20);
+      expect(description.endsWith('.')).toBe(true);
+      expect(description).not.toContain('…');
+      expect(description).not.toContain('...');
+    }
   });
 });

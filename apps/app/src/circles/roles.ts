@@ -276,6 +276,26 @@ export function roleDescription(role: CircleRole | null | undefined): string {
     : 'Part of this circle.';
 }
 
+/**
+ * What a screen reader says for one row of the roster.
+ *
+ * The row shows three things — a name, a role badge and the sentence describing
+ * what that role may do — and it is one accessibility element, so the label has
+ * to carry all three in the order they are read. The description is the part
+ * that matters: it is the sentence that answers "what can this person do?", and
+ * a screen reader must never get less of it than the eye does.
+ */
+export function memberRowSpokenLabel(input: {
+  readonly displayName: string;
+  readonly role: CircleRole;
+  readonly isSelf?: boolean;
+}): string {
+  const name = input.displayName.trim();
+  const you = input.isSelf === true ? ', you' : '';
+
+  return `${name}${you}. ${roleLabel(input.role)}. ${roleDescription(input.role)}`;
+}
+
 /** "Owner · 4 members" — the subtitle under a circle's name. */
 export function roleWithCount(role: CircleRole | null | undefined, members: number | null): string {
   const label = roleLabel(role);

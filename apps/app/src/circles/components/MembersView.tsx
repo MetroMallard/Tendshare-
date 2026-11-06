@@ -19,7 +19,14 @@ import { Screen } from '../../components/Screen';
 import type { CircleMember, CareRecipientSummary } from '../loadCircles';
 import type { CircleRole } from '../circleState';
 import type { Capabilities } from '../roles';
-import { ALL_ROLES, ROLES, canChangeRoleOf, capabilitySummary, roleLabel } from '../roles';
+import {
+  ALL_ROLES,
+  ROLES,
+  canChangeRoleOf,
+  capabilitySummary,
+  memberRowSpokenLabel,
+  roleLabel,
+} from '../roles';
 
 export interface MembersViewProps {
   /** The circle's name, for the eyebrow line. */
@@ -171,6 +178,11 @@ export function MembersView({
                     accessibilityHint={
                       canManage ? 'Opens a sheet to change their role or remove them.' : undefined
                     }
+                    accessibilityLabel={memberRowSpokenLabel({
+                      displayName: member.displayName,
+                      isSelf: member.isSelf,
+                      role: member.role,
+                    })}
                     avatarName={member.displayName}
                     divider={index > 0}
                     onPress={
@@ -182,6 +194,7 @@ export function MembersView({
                     }
                     showChevron={canManage}
                     subtitle={ROLES[member.role].description}
+                    subtitleBelow
                     testID={`members-row-${member.profileId}`}
                     title={member.isSelf ? `${member.displayName} (you)` : member.displayName}
                     trailing={<Badge label={roleLabel(member.role)} tone="brand" />}

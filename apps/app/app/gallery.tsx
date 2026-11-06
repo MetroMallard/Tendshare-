@@ -374,6 +374,28 @@ export default function GalleryScreen() {
             title="Documents"
             trailing={<Badge label="10" />}
           />
+          {/*
+            The stacked variant: the badge keeps the first line, the sentence
+            gets the whole width beneath it. This is the members roster's row,
+            and the reason the subtitle is not clamped here.
+          */}
+          <ListRow
+            avatarName="Margaret Chen"
+            divider
+            subtitle="Runs the circle. Can change anything, including who is in it."
+            subtitleBelow
+            title="Margaret Chen (you)"
+            trailing={<Badge label="Owner" tone="brand" />}
+          />
+          <ListRow
+            avatarName="Priya Raman"
+            divider
+            onPress={() => undefined}
+            subtitle="A paid aide or a neighbour. Sees the plan and checks off what they did."
+            subtitleBelow
+            title="Priya Raman"
+            trailing={<Badge label="Visiting helper" tone="brand" />}
+          />
         </Card>
       </Section>
 

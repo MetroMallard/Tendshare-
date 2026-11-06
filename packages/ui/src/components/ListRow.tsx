@@ -4,11 +4,33 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useTheme } from '../ThemeProvider';
 import { useFocusRing, type IconComponent } from '../primitives';
 import { Avatar } from './Avatar';
+import { listRowAccessibilityLabel } from './listRowLabel';
 import { Text } from './Text';
 
 export interface ListRowProps {
   readonly title: string;
   readonly subtitle?: string;
+  /**
+   * Put the subtitle on its own full-width line under the title, instead of in
+   * the column beside the trailing slot.
+   *
+   * Off by default, and right that way for a time, a count or a short state: two
+   * short lines read faster together. On for a sentence that *is* the content —
+   * a role's description, say — because in the column it has to share the width
+   * with a badge and gets clamped mid-sentence, which reads as broken to the
+   * person the sentence is for. With this on the subtitle is never clamped: it
+   * wraps to as many lines as it needs, across the whole row.
+   */
+  readonly subtitleBelow?: boolean;
+  /**
+   * Replaces the spoken label.
+   *
+   * A row is one accessibility element, so by default it says the title and the
+   * subtitle and nothing else. Use this when the row also *shows* something the
+   * screen reader would otherwise miss — a badge carrying the role, for
+   * instance — so the label says everything the row means.
+   */
+  readonly accessibilityLabel?: string;
   /** Leading glyph, shown in a tinted well. */
   readonly icon?: IconComponent;
   /** Leading initials, used when there is no `icon`. */
@@ -48,10 +70,16 @@ function Chevron({ color }: { color: string }) {
  * Rows are 60pt tall minimum, so a list of five is still easy to hit with a
  * thumb. A pressable row is one accessibility element — a screen reader says
  * the title and the subtitle together, not two fragments.
+ *
+ * Two layouts, one row: the subtitle beside the trailing slot (the default) and
+ * the subtitle on its own full-width line beneath the title, for a subtitle that
+ * is a sentence rather than a label. See `subtitleBelow`.
  */
 export function ListRow({
   title,
   subtitle,
+  subtitleBelow = false,
+  accessibilityLabel,
   icon: Icon,
   avatarName,
   trailing,
@@ -66,31 +94,68 @@ export function ListRow({
 
   const pressable = typeof onPress === 'function';
   const chevron = showChevron ?? pressable;
+  const spokenLabel = listRowAccessibilityLabel({
+    title,
+    subtitle,
+    spokenLabel: accessibilityLabel,
+  });
 
-  const body = (
+  const leading = Icon ? (
+    <View
+      accessible={false}
+      style={{
+        alignItems: 'center',
+        backgroundColor: theme.colors.brandSoft,
+        borderRadius: theme.radius.field,
+        height: theme.layout.controlHeight.small,
+        justifyContent: 'center',
+        width: theme.layout.controlHeight.small,
+      }}
+    >
+      <Icon color={theme.colors.brand} size={22} strokeWidth={2} />
+    </View>
+  ) : avatarName ? (
+    <Avatar name={avatarName} size="small" />
+  ) : null;
+
+  const titleText = (
+    <Text variant="bodyStrong" numberOfLines={2}>
+      {title}
+    </Text>
+  );
+
+  const trailingSlot = trailing ? <View style={{ alignItems: 'flex-end' }}>{trailing}</View> : null;
+  const chevronSlot = chevron && !trailing ? <Chevron color={theme.colors.textTertiary} /> : null;
+
+  const body = subtitleBelow ? (
     <>
-      {Icon ? (
-        <View
-          accessible={false}
-          style={{
-            alignItems: 'center',
-            backgroundColor: theme.colors.brandSoft,
-            borderRadius: theme.radius.field,
-            height: theme.layout.controlHeight.small,
-            justifyContent: 'center',
-            width: theme.layout.controlHeight.small,
-          }}
-        >
-          <Icon color={theme.colors.brand} size={22} strokeWidth={2} />
-        </View>
-      ) : avatarName ? (
-        <Avatar name={avatarName} size="small" />
+      <View
+        style={{
+          alignItems: 'center',
+          flexDirection: 'row',
+          gap: theme.space.sm,
+          minHeight: theme.layout.controlHeight.small,
+        }}
+      >
+        {leading}
+        <View style={{ flex: 1 }}>{titleText}</View>
+        {trailingSlot}
+        {chevronSlot}
+      </View>
+
+      {/* Full width and unclamped: this is a sentence, not a label. */}
+      {subtitle ? (
+        <Text tone="secondary" variant="caption">
+          {subtitle}
+        </Text>
       ) : null}
+    </>
+  ) : (
+    <>
+      {leading}
 
       <View style={{ flex: 1, gap: theme.space['2xs'] }}>
-        <Text variant="bodyStrong" numberOfLines={2}>
-          {title}
-        </Text>
+        {titleText}
         {subtitle ? (
           <Text variant="caption" tone="secondary" numberOfLines={2}>
             {subtitle}
@@ -98,17 +163,17 @@ export function ListRow({
         ) : null}
       </View>
 
-      {trailing ? <View style={{ alignItems: 'flex-end' }}>{trailing}</View> : null}
-      {chevron && !trailing ? <Chevron color={theme.colors.textTertiary} /> : null}
+      {trailingSlot}
+      {chevronSlot}
     </>
   );
 
   const rowStyle = [
-    styles.row,
+    subtitleBelow ? styles.rowStacked : styles.row,
     {
       borderTopColor: theme.colors.border,
       borderTopWidth: divider ? StyleSheet.hairlineWidth : 0,
-      gap: theme.space.sm,
+      gap: subtitleBelow ? theme.space['2xs'] : theme.space.sm,
       minHeight: theme.layout.controlHeight.large,
       paddingVertical: theme.space.xs,
       paddingHorizontal: theme.space.xs,
@@ -117,12 +182,7 @@ export function ListRow({
 
   if (!pressable) {
     return (
-      <View
-        accessible
-        accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
-        style={rowStyle}
-        testID={testID}
-      >
+      <View accessible accessibilityLabel={spokenLabel} style={rowStyle} testID={testID}>
         {body}
       </View>
     );
@@ -131,7 +191,7 @@ export function ListRow({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
+      accessibilityLabel={spokenLabel}
       accessibilityHint={accessibilityHint}
       onPress={onPress}
       testID={testID}
@@ -155,5 +215,9 @@ const styles = StyleSheet.create({
   row: {
     alignItems: 'center',
     flexDirection: 'row',
+  },
+  rowStacked: {
+    alignItems: 'stretch',
+    flexDirection: 'column',
   },
 });
