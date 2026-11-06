@@ -84,7 +84,26 @@ export function Button({
     large: theme.layout.controlHeight.large,
   }[size];
 
-  const spinnerColor = palette.foreground;
+  /**
+   * Unavailable is a *state*, not a ghost.
+   *
+   * This used to be `opacity: 0.55` over the live colours, which put the label
+   * at about 3:1 and made a perfectly ordinary moment — the seconds while you
+   * type a code — look like a broken button. A disabled button now says so in
+   * tokens: a sunken surface, a strong hairline and tertiary text, all at full
+   * opacity and all still above AA.
+   */
+  const resting = inactive
+    ? {
+        // A ghost button is a link, not a surface: filling it would read as a
+        // chip that appeared out of nowhere. It dims to tertiary text instead.
+        background: variant === 'ghost' ? 'transparent' : theme.colors.surfaceSunken,
+        border: variant === 'ghost' ? 'transparent' : theme.colors.borderStrong,
+        foreground: theme.colors.textTertiary,
+      }
+    : palette;
+
+  const spinnerColor = resting.foreground;
 
   return (
     <Pressable
@@ -98,15 +117,14 @@ export function Button({
       {...focusHandlers}
       style={({ pressed }): ViewStyle => ({
         alignItems: 'center',
-        backgroundColor: pressed ? palette.pressed : palette.background,
-        borderColor: palette.border,
+        backgroundColor: pressed && !inactive ? palette.pressed : resting.background,
+        borderColor: resting.border,
         borderRadius: theme.radius.field,
         borderWidth: variant === 'ghost' ? 0 : 1,
         flexDirection: 'row',
         gap: theme.space.xs,
         justifyContent: 'center',
         minHeight: height,
-        opacity: inactive ? 0.55 : 1,
         paddingHorizontal: size === 'large' ? theme.space.md : theme.space.sm,
         width: fullWidth ? '100%' : undefined,
         ...focusRingStyle,
@@ -124,7 +142,7 @@ export function Button({
         variant="bodyStrong"
         tone="primary"
         numberOfLines={1}
-        style={{ color: palette.foreground }}
+        style={{ color: resting.foreground }}
       >
         {loading && loadingLabel ? loadingLabel : label}
       </Text>

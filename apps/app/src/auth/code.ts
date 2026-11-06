@@ -17,6 +17,17 @@ export const CODE_MIN_LENGTH = 6;
 export const CODE_MAX_LENGTH = 8;
 
 /**
+ * What the empty code field says before anything is typed.
+ *
+ * It used to say `123456` — which reads as a code that is already there, with a
+ * disabled "Sign in" underneath it, so the honest first thought is "why can't I
+ * sign in?". A placeholder is a hint about the shape of the answer, never an
+ * example of one. It carries no digits at all, and `code.test.ts` keeps it that
+ * way.
+ */
+export const CODE_PLACEHOLDER = 'Eight digits';
+
+/**
  * Trim and lower-case. Email local parts are technically case-sensitive, but no
  * mail provider a family uses treats them that way, and two rows for the same
  * person would be a worse bug than the theoretical one.

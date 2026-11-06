@@ -72,8 +72,18 @@ export default function MoreScreen() {
         titleTestID="screen-more-heading"
       />
 
-      <Card accessibilityLabel={`Signed in as ${name}`} padding="md">
-        <View style={{ alignItems: 'center', flexDirection: 'row', gap: theme.space.sm }}>
+      {/*
+        The label belongs on the group that *is* the thing, not on the card.
+        A `Card accessibilityLabel` was a no-op on both native and web — the
+        card is a layout view, so a screen reader walked past it and read the
+        name and the address as two unrelated lines.
+      */}
+      <Card padding="md">
+        <View
+          accessible
+          accessibilityLabel={`Signed in as ${name}`}
+          style={{ alignItems: 'center', flexDirection: 'row', gap: theme.space.sm }}
+        >
           <Avatar name={name} size="large" />
           <View style={{ flex: 1, gap: theme.space['2xs'] }}>
             <Text variant="subheading">{name}</Text>

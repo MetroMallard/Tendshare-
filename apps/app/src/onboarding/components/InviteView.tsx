@@ -157,36 +157,43 @@ export function InviteView({
               variant="secondary"
             />
 
-            {hasAddresses ? (
-              <View>
-                {addresses.map((address, index) => (
-                  <ListRow
-                    icon={Mail}
-                    divider={index > 0}
-                    key={address}
-                    testID={`onboarding-invite-row-${address}`}
-                    title={address}
-                    trailing={
-                      <Button
-                        label="Remove"
-                        onPress={() => {
-                          onRemoveAddress(address);
-                        }}
-                        size="small"
-                        testID={`onboarding-invite-remove-${address}`}
-                        variant="ghost"
-                      />
-                    }
-                  />
-                ))}
-              </View>
-            ) : (
+            {hasAddresses ? null : (
               <Text tone="secondary" variant="caption">
                 No one added yet. You can skip this screen entirely.
               </Text>
             )}
           </View>
         </Card>
+
+        {/*
+          The addresses get their own card. Rows carry their own 16pt inset, so
+          inside a padded card they were indented twice and looked pinched
+          against the field above them.
+        */}
+        {hasAddresses ? (
+          <Card padding="none">
+            {addresses.map((address, index) => (
+              <ListRow
+                icon={Mail}
+                divider={index > 0}
+                key={address}
+                testID={`onboarding-invite-row-${address}`}
+                title={address}
+                trailing={
+                  <Button
+                    label="Remove"
+                    onPress={() => {
+                      onRemoveAddress(address);
+                    }}
+                    size="small"
+                    testID={`onboarding-invite-remove-${address}`}
+                    variant="ghost"
+                  />
+                }
+              />
+            ))}
+          </Card>
+        ) : null}
       </View>
     </Screen>
   );

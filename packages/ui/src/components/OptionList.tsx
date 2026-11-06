@@ -2,6 +2,7 @@ import { Pressable, View } from 'react-native';
 
 import { useTheme } from '../ThemeProvider';
 import { useFocusRing } from '../primitives';
+import { listRowAccessibilityLabel } from './listRowLabel';
 import { Text } from './Text';
 
 export interface OptionListOption<T extends string> {
@@ -84,7 +85,12 @@ function OptionRow({
 
   return (
     <Pressable
-      accessibilityLabel={label}
+      /*
+        The description is visible, so it has to be spoken. "Takes part in
+        care: medications…" is the part that tells you what you are choosing —
+        a radio announced only as "Family member" makes the person guess.
+      */
+      accessibilityLabel={listRowAccessibilityLabel({ title: label, subtitle: description })}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
       onPress={onPress}
@@ -113,7 +119,13 @@ function OptionRow({
         accessible={false}
         style={{
           alignItems: 'center',
-          borderColor: selected ? theme.colors.brand : theme.colors.borderStrong,
+          /*
+            The ring is the only thing marking "not chosen", so it is a non-text
+            signal and owes WCAG 3:1. `borderStrong` was 1.7:1 in light and
+            1.9:1 in dark — an empty circle you had to squint at. Tertiary text
+            is 4.6:1 or better in both schemes.
+          */
+          borderColor: selected ? theme.colors.brand : theme.colors.textTertiary,
           borderRadius: theme.radius.pill,
           borderWidth: 2,
           height: 22,

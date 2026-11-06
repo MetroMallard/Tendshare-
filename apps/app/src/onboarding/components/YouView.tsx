@@ -83,7 +83,7 @@ export function YouView({
 
         <Card>
           <View style={{ alignItems: 'center', gap: theme.space.md }}>
-            <Avatar name={displayName.trim().length > 0 ? displayName : '?'} size="large" />
+            <Avatar name={displayName} size="large" />
 
             <TextField
               autoCapitalize="words"
