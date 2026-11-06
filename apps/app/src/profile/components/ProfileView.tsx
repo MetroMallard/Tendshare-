@@ -28,11 +28,11 @@ import { Notice } from '../../components/Notice';
 import { Screen } from '../../components/Screen';
 import type { CircleRole } from '../../circles/circleState';
 import type { Capabilities } from '../../circles/roles';
+import { basicsCaption, basicsRows, basicsTitle } from '../basicsRows';
 import {
   CONDITION_KIND_LABELS,
   contactsOf,
   conditionsOf,
-  dateOfBirthLabel,
   type CareContact,
   type CareCondition,
   type CareProfile,
@@ -83,10 +83,12 @@ export interface ProfileViewProps {
  *     onboarding does: this is what the family typed, not medical advice, and
  *     nothing here is checked against anything.
  *   * **A visiting helper sees less, and is told so.** The owner's directive is
- *     that a helper sees the person they are helping — name, photo, relationship
- *     — and nothing about their health. The screen asks `canSeeCareDetails`, the
- *     database refuses the rest, and the helper gets one calm sentence instead of
- *     four empty sections that look like a broken app.
+ *     that a helper sees the person they are helping — the photo, the full name
+ *     and the relationship — and nothing else: no preferred name, no date of
+ *     birth, no phone, nothing about their health. The rows come from
+ *     `basicsRows()`, keyed on `canSeeCareDetails` rather than on a role name,
+ *     the database refuses the rest, and the helper gets one calm sentence
+ *     instead of four empty sections that look like a broken app.
  *   * **Every state is a real state.** Loading is skeletons per section, empty
  *     says what the section is for, error is one retry, offline says what still
  *     works, and read-only is stated rather than shown as greyed-out controls.
@@ -142,7 +144,7 @@ export function ProfileView({
           eyebrow={circleName}
           onBack={onBack}
           subtitle="Everything the family needs about the person you’re caring for, in one place."
-          title={basics?.preferredName ?? basics?.fullName ?? 'Their profile'}
+          title={basicsTitle(basics, canSeeDetails)}
           titleTestID="profile-title"
         />
 
@@ -204,12 +206,7 @@ export function ProfileView({
                     {basics.fullName}
                   </Text>
                   <Text align="center" tone="secondary" variant="caption">
-                    {[
-                      basics.preferredName === null ? null : `Goes by ${basics.preferredName}`,
-                      basics.relationship,
-                    ]
-                      .filter((part): part is string => part !== null && part.length > 0)
-                      .join(' · ') || 'No relationship added yet'}
+                    {basicsCaption(basics, canSeeDetails)}
                   </Text>
 
                   {canEdit ? (
@@ -225,45 +222,17 @@ export function ProfileView({
                   ) : null}
                 </View>
 
-                <BasicsRow
-                  canEdit={canEdit}
-                  label="Full name"
-                  onPress={onEditBasics}
-                  testID="profile-row-name"
-                  value={basics.fullName}
-                />
-                <BasicsRow
-                  canEdit={canEdit}
-                  divider
-                  label="Preferred name"
-                  onPress={onEditBasics}
-                  testID="profile-row-preferred-name"
-                  value={basics.preferredName}
-                />
-                <BasicsRow
-                  canEdit={canEdit}
-                  divider
-                  label="Relationship"
-                  onPress={onEditBasics}
-                  testID="profile-row-relationship"
-                  value={basics.relationship}
-                />
-                <BasicsRow
-                  canEdit={canEdit}
-                  divider
-                  label="Date of birth"
-                  onPress={onEditBasics}
-                  testID="profile-row-dob"
-                  value={basics.dateOfBirth === null ? null : dateOfBirthLabel(basics.dateOfBirth)}
-                />
-                <BasicsRow
-                  canEdit={canEdit}
-                  divider
-                  label="Phone"
-                  onPress={onEditBasics}
-                  testID="profile-row-phone"
-                  value={basics.phone}
-                />
+                {basicsRows(basics, canSeeDetails).map((row, index) => (
+                  <BasicsRow
+                    key={row.key}
+                    canEdit={canEdit}
+                    divider={index > 0}
+                    label={row.label}
+                    onPress={onEditBasics}
+                    testID={row.testID}
+                    value={row.value}
+                  />
+                ))}
               </Card>
 
               {canSeeDetails && basics.notes !== null ? (

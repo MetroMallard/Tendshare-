@@ -102,6 +102,15 @@ All notable changes to Tendshare are recorded here. The format follows
 
 ### Fixed
 
+- **A visiting helper was shown more of the person than the owner's boundary allows.** The
+  helper's screen showed the preferred name, the date of birth and the phone number as
+  well as the name and relationship. An aide needs to know who they are with, not their
+  date of birth. The basics rows now come from one pure function, `basicsRows()`, driven
+  by the `canSeeCareDetails` capability rather than by a role name: a helper gets the
+  photo, the full name and the relationship **and nothing else**, and the screen's title
+  and caption stop showing the family's shorthand too. The row list is asserted exactly in
+  `basicsRows.test.ts`, so a later refactor of `ProfileView` cannot quietly widen it.
+  Same principle as no documents and no money.
 - **The role description on a member's row was cut off mid-sentence.** "Runs the circle.
   Can change anything, …" — the one sentence that tells a family member what someone is
   allowed to do, clipped because `ListRow`'s subtitle shared its width with the role badge
