@@ -1,5 +1,7 @@
 import { brand, Card, EmptyState, ScreenHeader, type IconComponent } from '@tendshare/ui';
 
+import { useCircle } from '../circles/CircleProvider';
+import { circleDisplayName } from '../circles/activeCircle';
 import { Screen } from './Screen';
 
 export interface PlaceholderScreenProps {
@@ -20,6 +22,11 @@ export interface PlaceholderScreenProps {
  *
  * Built entirely from design-system pieces — a header and one empty state in a
  * card — so the shell already looks like the product rather than like scaffolding.
+ *
+ * The eyebrow is the active circle's name. That is the one piece of context a
+ * family needs on every tab: with two parents and two circles, "which one am I
+ * looking at?" has to be answerable without going back to More. With no circle
+ * yet it falls back to the product name, exactly as before.
  */
 export function PlaceholderScreen({
   title,
@@ -29,10 +36,13 @@ export function PlaceholderScreen({
   placeholderBody,
   testID,
 }: PlaceholderScreenProps) {
+  const { active } = useCircle();
+  const eyebrow = active === null ? brand.name : circleDisplayName(active);
+
   return (
     <Screen>
       <ScreenHeader
-        eyebrow={brand.name}
+        eyebrow={eyebrow}
         subtitle={subtitle}
         title={title}
         titleTestID={`${testID}-heading`}

@@ -68,7 +68,11 @@ async function main() {
 
   let ran = 0;
   for (const file of files) {
-    const version = file.replace(/\.sql$/, '');
+    // The version is the timestamp prefix, not the whole filename: that is what
+    // the Supabase CLI records, and what the SQL editor leaves behind when a
+    // migration is pasted in by hand. Matching the full name made every file
+    // look unapplied on a project set up that way, and re-ran migration 1.
+    const version = file.split('_')[0];
     if (applied.has(version)) {
       console.log(`skip    ${file}`);
       continue;

@@ -119,7 +119,7 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 | 3   | Supabase schema, migrations, Row Level Security policies + RLS tests per table                                                                              | Phase 1 | 🚧 PR #3 open — 5 migrations applied to the hosted project; RLS suite green (44 hosted, 67 local) |
 | 4   | Auth: **email code + Google now**; Sign in with Apple deferred until the owner's Apple Developer account exists — **must ship before App Store submission** | Phase 1 | 🚧 PR open — email code proven against the hosted project; Google built, provider not yet enabled in Supabase |
 | 5   | Onboarding, 3 screens: your name and photo → who you're caring for → invite family                                                                          | Phase 1 | 🚧 PR open — 3 screens with real writes, resumable draft and a circle guard; initials only, invites deferred to Task 11 |
-| 6   | Care circles, the four roles, and the circle switcher                                                                                                       | Phase 1 | ⬜ Not started                                                                                    |
+| 6   | Care circles, the four roles, and the circle switcher                                                                                                       | Phase 1 | 🚧 PR open — capability map, device-local switcher, members screen with role changes and removal; membership changes now write the audit trail |
 | 7   | Person profile: basics, doctors and pharmacies, allergies and conditions as typed, insurance cards                                                          | Phase 2 | ⬜ Not started                                                                                    |
 | 8   | Med list, Today check-off with who confirmed and when, refill reminders, change history                                                                     | Phase 2 | ⬜ Not started                                                                                    |
 | 9   | Calendar and coverage: appointment owners, "I'll take it", swap requests, visit notes, phone calendar sync                                                  | Phase 2 | ⬜ Not started                                                                                    |
@@ -129,6 +129,28 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
 | 13  | Fairness view: visits, rides, expenses and hours per member, gently presented                                                                               | Phase 3 | ⬜ Not started                                                                                    |
 | 14  | Emergency sheet: fully offline view, one-tap PDF that prints cleanly on Letter and A4, expiring share link                                                  | Phase 3 | ⬜ Not started                                                                                    |
 | 15  | Invites by link/code/text with deep links; notifications and email with toggles; subscriptions and paywall                                                  | Phase 4 | ⬜ Not started                                                                                    |
+
+### Decisions log
+
+- **2026-11-05** — **One capability map** (`apps/app/src/circles/roles.ts`) is the only
+  place that decides what a role may do. Screens ask it, never `role === 'owner'`, so the
+  UI cannot offer an action RLS rejects. Plain-language names live there too.
+- **2026-11-05** — **The active circle is remembered per device**, in the keychain on
+  device and `localStorage` on web, keyed by profile id. Not a global setting: the phone
+  in the kitchen and the laptop in the office are different people's views. If the
+  remembered circle is gone (removed, deleted) the app falls back to the first circle
+  rather than to no circle. **One circle shows no switcher.**
+- **2026-11-05** — **View only does not see costs.** It sees the care records and changes
+  nothing; the family's money is for the people paying it. Visiting helper sees no
+  documents and no money, and may check off meds and visits — Task 8's med-check-off
+  policy must grant that narrow write.
+- **2026-11-05** — **Audit rows are written by triggers**, in the same transaction as the
+  change, with the actor from the session. A rename records `{"fields": ["name"]}`, never
+  the name: the payload stays ids, enums and field names. No screen reads the trail yet
+  (that is the Phase 5 privacy pass); the data is already there.
+- **2026-11-05** — **The owner cannot be demoted**, and the free plan's 3-member cap is
+  enforced by a trigger reading `plan_limits`. Both refuse a write; neither removes
+  anything already there.
 
 **Launch (Phase 5) follows task 15:** privacy and security pass (RLS and storage policy tests, audit log), accessibility audit, performance budget (cold start under 2 s), Maestro end-to-end tests, demo seed data, privacy policy and terms, App Store and Play Store metadata, EAS builds, and the landing page with pricing and a waitlist.
 

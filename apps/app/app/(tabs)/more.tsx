@@ -1,4 +1,5 @@
-import { LogOut, Menu } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { LogOut, Users } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 
@@ -7,7 +8,6 @@ import {
   brand,
   Card,
   ConfirmSheet,
-  EmptyState,
   ListRow,
   ScreenHeader,
   Text,
@@ -17,6 +17,9 @@ import {
 import { useSession } from '../../src/auth/session';
 import { HiddenEntry } from '../../src/components/HiddenEntry';
 import { Screen } from '../../src/components/Screen';
+import { useCircle } from '../../src/circles/CircleProvider';
+import { circleDisplayName } from '../../src/circles/activeCircle';
+import { CircleSwitcher } from '../../src/circles/components/CircleSwitcher';
 
 /** The name to greet someone by, without ever showing an empty row. */
 function nameFrom(displayName: string | null, email: string | null): string {
@@ -28,10 +31,22 @@ function nameFrom(displayName: string | null, email: string | null): string {
   return local && local.length > 0 ? local : 'You';
 }
 
-/** More — who is signed in, the circle, documents, plan and settings. */
+/**
+ * More — who is signed in, which circle these tabs are about, and the settings
+ * that belong to a person rather than to a family.
+ *
+ * The circle's name is the eyebrow, so every visit to More answers "whose care
+ * am I looking at?" before anything else. Under the profile card sits the
+ * switcher: one row with the circle's name, your role and how many people are
+ * in it, and — when there is more than one circle — one tap to change it. With
+ * a single circle the same row is a plain summary with nothing to press.
+ */
 export default function MoreScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const { user, displayName, signOut, isOffline } = useSession();
+  const { circles, active, circlesState, switchTo, reloadCircles } = useCircle();
+  const circleName = active === null ? null : circleDisplayName(active);
   const [confirming, setConfirming] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
@@ -51,8 +66,8 @@ export default function MoreScreen() {
   return (
     <Screen>
       <ScreenHeader
-        eyebrow={brand.name}
-        subtitle="Your circle, documents and settings."
+        eyebrow={circleName ?? brand.name}
+        subtitle="Your circle, the people in it, and your settings."
         title="More"
         titleTestID="screen-more-heading"
       />
@@ -71,13 +86,35 @@ export default function MoreScreen() {
         </View>
       </Card>
 
-      <Card padding="sm">
-        <EmptyState
-          body="Your care circle, the document vault, your plan and your settings will all be reachable from here."
-          headline="Not set up yet"
-          icon={Menu}
-          testID="screen-more-placeholder"
+      <Card padding="none">
+        <CircleSwitcher
+          active={active}
+          circles={circles}
+          offline={isOffline}
+          onSwitch={switchTo}
+          testID="more-circle-switcher"
         />
+        <ListRow
+          accessibilityHint="Opens everyone in this circle, and what each role can do."
+          divider
+          icon={Users}
+          onPress={() => {
+            router.push('/members');
+          }}
+          subtitle="Everyone in it, and what each of them can do."
+          testID="more-members"
+          title="People in this circle"
+        />
+        {circlesState === 'error' ? (
+          <ListRow
+            accessibilityHint="Asks the server again for your circles."
+            divider
+            onPress={reloadCircles}
+            subtitle="We couldn’t read your circles just now. Nothing has changed."
+            testID="more-circles-error"
+            title="Try again"
+          />
+        ) : null}
       </Card>
 
       <Card padding="none">

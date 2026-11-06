@@ -58,7 +58,10 @@ export function ScreenHeader({
       <View style={{ alignItems: 'flex-start', flexDirection: 'row', gap: theme.space.xs }}>
         <View style={{ flex: 1, gap: theme.space['2xs'] }}>
           {eyebrow ? (
-            <Text tone="secondary" uppercase variant="label">
+            // One line, always. The eyebrow is context, not content: a long
+            // circle name that wraps would push the whole screen down, and on a
+            // phone the title is what the eye is looking for.
+            <Text numberOfLines={1} tone="secondary" uppercase variant="label">
               {eyebrow}
             </Text>
           ) : null}
