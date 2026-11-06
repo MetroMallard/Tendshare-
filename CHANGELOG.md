@@ -8,6 +8,27 @@ All notable changes to Tendshare are recorded here. The format follows
 
 ### Added
 
+- **Task 7 — the profile route, the editing sheets, upload and the hidden preview**
+  (same task, same PR, #7).
+  - **`/profile`** is reachable from the members screen's "Who you're caring for" card
+    and from Today's new care-recipient card — chevron, spoken hint, and its own loading,
+    empty and retry states. The route is guarded like `/members`: session, then circle,
+    then the person, with loading, error, empty, offline and read-only states.
+  - **Four editing sheets** built from `@tendshare/ui` only: the basics, a doctor or
+    pharmacy, an allergy or condition, an insurance card. Each validates before it saves
+    and puts the message under the field it belongs to. Saves are optimistic with a
+    **visible** rollback — the row is put back _and_ one calm sentence says why. Only
+    changed fields are sent, so an untouched save writes and audits nothing. Removing a
+    contact, condition or card confirms first.
+  - **Photo and insurance-card upload** through `expo-image-picker` into the private
+    `care-media` bucket: type and size checked before upload, bytes decoded from base64
+    (a `file://` URL cannot be read on Android), the object path built under the circle
+    id the storage policy reads, upload before the row so a failed insert leaves no
+    dangling reference, and the replaced object removed after a successful save.
+  - **`/profile-preview`**, hidden and unlinked: every state at 390px in both schemes.
+  - **No new schema.** The migrations from the earlier commit are unchanged; the
+    triggers still own the audit trail and the client still writes none of it.
+
 - **Task 7 — the person profile (in review, PR open).**
   - **Schema, forward-only** (`20261106120000_care_recipient_profile.sql`):
     `care_recipients` gains `preferred_name`, `phone` and `notes` (it already had
