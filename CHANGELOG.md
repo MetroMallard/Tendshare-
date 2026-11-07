@@ -8,6 +8,23 @@ All notable changes to Tendshare are recorded here. The format follows
 
 ### Added
 
+- **App icon, splash screen and web icons from the owner's chosen mark** (#9).
+  - The mark is one hand-authored vector, `apps/app/assets/brand/tendshare-mark.svg` —
+    two heads on one continuous heart, teal `#4CC0B9` on navy `#10456B`. No raster
+    source and no generated art, so it stays crisp at every size.
+  - `scripts/export-app-icons.mjs` renders it once and derives the whole set: the iOS
+    1024 icon (opaque, 81% inset), the Android adaptive foreground, background and
+    monochrome layers, the splash (mark with the name beneath, white on navy), and the
+    web favicon, touch icon, 192/512 icons, maskable icon and manifest. The set is under
+    150 KB in total. CI never runs the script; the PNGs are committed.
+  - `packages/ui/src/brand.test.ts` guards the set from bytes: a hex outside the palette
+    fails anywhere in app source, `app.json`, the web manifest or the mark; and every
+    committed PNG is checked for size, alpha (iOS must have none), corner colour, mark
+    inset and centring, with every path in `app.json` and the manifest required to exist.
+  - **Dark mode was checked on four real screens** (members error, onboarding invite
+    rows, the owner's profile, the verify screen) at 390 px. Nothing needed changing;
+    the five component states that were not captured are listed in PR #9 for a follow-up.
+
 - **Task 7 — the profile route, the editing sheets, upload and the hidden preview**
   (same task, same PR, #7).
   - **`/profile`** is reachable from the members screen's "Who you're caring for" card
