@@ -7,13 +7,19 @@
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./assets/brand/icon-ios-1024.png",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tendshare.app"
     },
     "android": {
       "package": "com.tendshare.app",
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/brand/adaptive-icon-foreground.png",
+        "backgroundImage": "./assets/brand/adaptive-icon-background.png",
+        "monochromeImage": "./assets/brand/adaptive-icon-monochrome.png"
+      }
     },
     "web": {
       "bundler": "metro",
@@ -22,10 +28,24 @@
       "shortName": "Tendshare",
       "lang": "en",
       "themeColor": "#10456B",
-      "backgroundColor": "#F7F3EC"
+      "backgroundColor": "#F7F3EC",
+      "favicon": "./public/favicon.png"
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/brand/splash.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#10456B",
+          "dark": {
+            "image": "./assets/brand/splash.png",
+            "backgroundColor": "#10456B"
+          }
+        }
+      ],
       [
         "expo-image-picker",
         {
