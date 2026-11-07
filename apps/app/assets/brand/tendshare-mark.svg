@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="113.64 118 772.71 736" width="772.71" height="736" role="img" aria-label="Two people holding up one shared heart">
+  <!--
+    The Tendshare mark: two people, one heart. Option B, chosen by the owner.
+
+    Two heads sit on a single heart drawn as one continuous stroked path — the
+    two arms meet near the bottom point with a gap, so the shape reads as two
+    figures holding up one shared heart. The negative space inside the heart is
+    the field colour, which is why the mark needs no interior fill and survives
+    being flattened to a single tint on Android.
+
+    Hand-authored vector, no raster source: the viewBox is the exact ink box
+    (measured from this path), so a consumer can scale the file to a target size
+    and know what the artwork occupies. Colours are the brand palette's teal —
+    `brand.palette.dark.secondary` — on the navy field `brand.palette.light.primary`
+    that the icons and splash paint behind it. `brand.test.ts` fails if a hex
+    here is not in the palette, so the mark cannot drift off-brand.
+
+    Regenerate the PNG exports with `node scripts/export-app-icons.mjs`.
+  -->
+  <g fill="none" stroke="#4CC0B9" stroke-width="96" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M412 806C360 756 292 700 242 636C188 568 158 500 162 434C168 354 238 300 328 304C398 307 452 380 500 470C548 380 602 307 672 304C762 300 832 354 838 434C842 500 812 568 758 636C708 700 640 756 588 806"/>
+  </g>
+  <circle cx="306" cy="214" r="96" fill="#4CC0B9"/>
+  <circle cx="694" cy="214" r="96" fill="#4CC0B9"/>
+</svg>
