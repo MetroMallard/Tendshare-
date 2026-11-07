@@ -48,9 +48,17 @@ export function Sheet({
       visible={visible}
     >
       <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+        {/*
+          The scrim closes the sheet for a finger, and for nobody else: it is a
+          full-screen `Pressable` labelled "Close", so without this a screen
+          reader met a giant close button before the sheet it was closing. There
+          is an explicit Close button in the footer, and the hardware back button
+          works, so nothing is lost.
+        */}
         <Pressable
-          accessibilityLabel="Close"
-          accessibilityRole="button"
+          accessibilityElementsHidden
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
           onPress={onClose}
           style={{
             backgroundColor: theme.colors.overlay,

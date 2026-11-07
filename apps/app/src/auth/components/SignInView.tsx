@@ -114,7 +114,9 @@ export function SignInView({
           <Text accessibilityRole="header" testID="sign-in-heading" variant="title">
             Sign in
           </Text>
-          <Text tone="secondary">{brand.tagline}</Text>
+          <Text balance tone="secondary">
+            {brand.tagline}
+          </Text>
         </View>
 
         {notConfigured ? (
@@ -158,7 +160,9 @@ export function SignInView({
                   autoCorrect={false}
                   editable={!submitting}
                   error={
-                    failure?.kind === 'email_invalid' ? "That address doesn't look right." : undefined
+                    failure?.kind === 'email_invalid'
+                      ? "That address doesn't look right."
+                      : undefined
                   }
                   inputMode="email"
                   keyboardType="email-address"

@@ -1,6 +1,7 @@
 import { Image, View } from 'react-native';
 
 import { useTheme } from '../ThemeProvider';
+import { initialsOf } from './initials';
 import { Text } from './Text';
 
 export type AvatarSize = 'small' | 'medium' | 'large';
@@ -11,22 +12,13 @@ const DIAMETER: Readonly<Record<AvatarSize, number>> = {
   large: 72,
 };
 
-/** First letter of the first and last word: "Margaret Chen" -> "MC". */
-export function initialsOf(name: string): string {
-  const words = name
-    .trim()
-    .split(/\s+/)
-    .filter((word) => word.length > 0);
-
-  const first = words[0]?.[0] ?? '?';
-  const last = words.length > 1 ? (words[words.length - 1]?.[0] ?? '') : '';
-
-  return `${first}${last}`.toUpperCase();
-}
-
 /**
- * Pick one of the five soft tints from the name, so the same person is the same
+ * Pick one of the soft tints from the name, so the same person is the same
  * colour on every screen without anybody choosing a colour.
+ *
+ * Amber used to be one of them. In a health app an amber circle reads as an
+ * attention state — "something is wrong with this person" — which is not
+ * something an identity colour may ever mean. No status colour is in the list.
  */
 function toneIndex(name: string): number {
   let hash = 0;
@@ -35,7 +27,7 @@ function toneIndex(name: string): number {
     hash = (hash + name.charCodeAt(index) * (index + 1)) % 9973;
   }
 
-  return hash % 5;
+  return hash % 4;
 }
 
 export interface AvatarProps {
@@ -64,12 +56,12 @@ export function Avatar({ name, size = 'medium', uri, accessibilityLabel, testID 
     { bg: theme.colors.brandSoft, fg: theme.colors.brandSoftFg },
     { bg: theme.colors.accentSoft, fg: theme.colors.accentSoftFg },
     { bg: theme.colors.successSoft, fg: theme.colors.successSoftFg },
-    { bg: theme.colors.warningSoft, fg: theme.colors.warningSoftFg },
     { bg: theme.colors.surfaceSunken, fg: theme.colors.textSecondary },
   ];
 
   const tint = tints[toneIndex(name)] ?? tints[0];
   const diameter = DIAMETER[size];
+  const initials = initialsOf(name);
 
   if (typeof uri === 'string' && uri.length > 0) {
     return (
@@ -93,23 +85,51 @@ export function Avatar({ name, size = 'medium', uri, accessibilityLabel, testID 
   return (
     <View
       accessible
-      accessibilityLabel={accessibilityLabel ?? name}
+      accessibilityLabel={accessibilityLabel ?? (initials.length > 0 ? name : 'No name yet')}
       testID={testID}
       style={{
         alignItems: 'center',
-        backgroundColor: tint?.bg,
+        backgroundColor: initials.length > 0 ? tint?.bg : theme.colors.surfaceSunken,
         borderRadius: theme.radius.pill,
         height: diameter,
         justifyContent: 'center',
         width: diameter,
       }}
     >
-      <Text
-        variant={size === 'large' ? 'heading' : size === 'medium' ? 'subheading' : 'bodyStrong'}
-        style={{ color: tint?.fg }}
-      >
-        {initialsOf(name)}
-      </Text>
+      {initials.length > 0 ? (
+        <Text
+          variant={size === 'large' ? 'heading' : size === 'medium' ? 'subheading' : 'bodyStrong'}
+          style={{ color: tint?.fg }}
+        >
+          {initials}
+        </Text>
+      ) : (
+        /*
+          A person glyph, not a question mark. Somebody who has not typed their
+          name yet gets a calm silhouette on a neutral well; a "?" in a 72pt
+          circle reads as a broken screen.
+        */
+        <View accessible={false} style={{ alignItems: 'center', justifyContent: 'center' }}>
+          <View
+            style={{
+              backgroundColor: theme.colors.textTertiary,
+              borderRadius: theme.radius.pill,
+              height: Math.round(diameter * 0.26),
+              width: Math.round(diameter * 0.26),
+            }}
+          />
+          <View
+            style={{
+              backgroundColor: theme.colors.textTertiary,
+              borderTopLeftRadius: theme.radius.pill,
+              borderTopRightRadius: theme.radius.pill,
+              height: Math.round(diameter * 0.22),
+              marginTop: Math.round(diameter * 0.04),
+              width: Math.round(diameter * 0.48),
+            }}
+          />
+        </View>
+      )}
     </View>
   );
 }

@@ -54,7 +54,9 @@ export function Switch({
         gap: theme.space.sm,
         justifyContent: 'space-between',
         minHeight: theme.layout.controlHeight.large,
-        opacity: disabled ? 0.55 : pressed ? 0.85 : 1,
+        // A disabled switch is a state, not a ghost: it stays at full opacity
+        // (0.55 put the label near 3:1) and its track and text say "not now".
+        opacity: disabled ? 1 : pressed ? 0.85 : 1,
         paddingVertical: theme.space.xs,
         ...focusRingStyle,
       })}
@@ -81,9 +83,10 @@ export function Switch({
           borderRadius: theme.radius.pill,
           borderWidth: 1,
           flexDirection: 'row',
-          height: thumbSize + theme.space['2xs'],
+          height: thumbSize + theme.space.xs,
           justifyContent: value ? 'flex-end' : 'flex-start',
-          padding: theme.space['2xs'] / 2,
+          // 4pt, not 2pt: the one padding in the product that was off the grid.
+          padding: theme.space['2xs'],
           width: trackWidth,
         }}
       >

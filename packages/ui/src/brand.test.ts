@@ -187,4 +187,16 @@ describe('brand config', () => {
     expect(manifest.expo.web.name).toBe(brand.name);
     expect(manifest.expo.web.shortName).toBe(brand.name);
   });
+
+  it('paints the browser bar and the first frame in theme tokens', () => {
+    // `app.json` held two hexes nobody else had: a browser bar in a different
+    // navy (#12395B) and a colder white (#F7F6F3) that flashed before the app
+    // painted. Both are theme values now, and this fails if they drift again.
+    const manifest = JSON.parse(readFileSync(resolve(repoRoot, 'apps/app/app.json'), 'utf8')) as {
+      expo: { web: { themeColor: string; backgroundColor: string } };
+    };
+
+    expect(manifest.expo.web.themeColor).toBe(lightColors.brand);
+    expect(manifest.expo.web.backgroundColor).toBe(lightColors.bg);
+  });
 });
