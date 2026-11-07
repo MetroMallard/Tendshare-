@@ -208,3 +208,12 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
   is no scheduler, and a client may be offline), so a dose can never render as
   "not scheduled" when it is really "not taken" — the worst failure this product has.
   There is no quantity or dose-amount column anywhere, and there must not be one.
+
+- **2026-11-06 — owner settled what happens when a plan lapses.** A circle whose paid
+  plan ends drops to Free. **Every free feature keeps working, including med
+  check-offs.** Only the paid extras (cost split and settle-up, the fairness view,
+  the emergency sheet PDF) go **read-only** — still readable, never writable again
+  until the plan returns. If the circle is over a free limit (members, documents),
+  **nothing is removed**; they simply cannot add more. This settles the open
+  question left on Task 8: ticking a dose is a free feature, so a lapsed circle
+  keeps checking off doses, and the check-off must never be gated on plan state.
