@@ -217,3 +217,10 @@ Meds, appointments with "who's covering", documents, costs split fairly between 
   **nothing is removed**; they simply cannot add more. This settles the open
   question left on Task 8: ticking a dose is a free feature, so a lapsed circle
   keeps checking off doses, and the check-off must never be gated on plan state.
+
+- **2026-11-07 — owner rule: migrations go through the Supabase CLI, nothing else.**
+  Every schema change is applied with `npx --yes supabase@latest db push --db-url
+  "$SUPABASE_DB_URL"` so Supabase's own migration history is the record of what ran.
+  No hand-written Postgres client, no pasted SQL, no manual inserts into
+  `supabase_migrations.schema_migrations`. `/home/team/shared/tools/pg.py` exists only
+  because this box has no psql/psycopg2/pg, and it is restricted to **read-only** checks.
