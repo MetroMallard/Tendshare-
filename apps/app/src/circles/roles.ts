@@ -45,8 +45,27 @@ export type Capability =
   | 'canSeeMeds'
   /** Add or change a medication. */
   | 'canEditMeds'
-  /** Check a dose or a visit off. */
+  /**
+   * Tick a dose or a visit off.
+   *
+   * Free, and never gated on plan state: the owner settled on 2026-11-06 that a
+   * circle which lapsed to Free keeps every free feature, med check-offs
+   * explicitly included. The database says the same — no policy on the med
+   * tables calls `circle_is_writable()`, and `tests/rls/meds.rls.test.ts` proves
+   * a tick still lands on a cancelled circle.
+   */
   | 'canCheckOffMeds'
+  /**
+   * Undo a tick — delete the check-off and leave the slot open again.
+   *
+   * Separate from `canCheckOffMeds` because the undo is a *delete*, not an
+   * update: the check-off table has no update path at all, so undoing a mistake
+   * writes `dose.unticked` and re-ticking writes a second `dose.ticked`. Two
+   * facts reach the trail instead of one silently rewriting the other. The same
+   * three roles hold both, but a screen that offers a tick without an undo, or
+   * the reverse, is a bug this pair makes visible.
+   */
+  | 'canUndoCheckOff'
   /** Add appointments, claim coverage, ask for a swap. */
   | 'canManageCalendar'
   /** Post to the family updates feed. */
@@ -83,6 +102,7 @@ export const CAPABILITY_LABELS: Readonly<Record<Capability, string>> = {
   canSeeMeds: 'See the medication list',
   canEditMeds: 'Add and change medications',
   canCheckOffMeds: 'Check off medications and visits',
+  canUndoCheckOff: 'Undo a check-off you made',
   canManageCalendar: 'Add appointments and cover them',
   canPostUpdates: 'Post family updates',
   canSeeDocuments: 'Open the document vault',
@@ -101,6 +121,7 @@ export const CAPABILITY_ORDER: readonly Capability[] = [
   'canSeeCareDetails',
   'canSeeMeds',
   'canCheckOffMeds',
+  'canUndoCheckOff',
   'canEditMeds',
   'canManageCalendar',
   'canPostUpdates',
@@ -123,6 +144,7 @@ export const NO_CAPABILITIES: Capabilities = {
   canSeeMeds: false,
   canEditMeds: false,
   canCheckOffMeds: false,
+  canUndoCheckOff: false,
   canManageCalendar: false,
   canPostUpdates: false,
   canSeeDocuments: false,
@@ -151,6 +173,7 @@ const OWNER_CAPABILITIES: Capabilities = {
   canSeeMeds: true,
   canEditMeds: true,
   canCheckOffMeds: true,
+  canUndoCheckOff: true,
   canManageCalendar: true,
   canPostUpdates: true,
   canSeeDocuments: true,
@@ -196,12 +219,17 @@ const VIEW_ONLY_CAPABILITIES: Capabilities = {
 /**
  * Visiting helper: the narrow slice the brief describes.
  *
- * `canCheckOffMeds` is true here and the database does not yet have a table to
- * check off into — Task 8 adds doses and visits, and its insert policy must
- * grant a helper their own check-offs. Until then no screen calls it. The brief
- * is explicit that this is the helper's one write ("an aide who can check off
- * meds and visits with a code"), so the map states it rather than waiting for
- * the table.
+ * `canCheckOffMeds` and `canUndoCheckOff` are the whole of this role's writing,
+ * and since Task 8 they are backed by a table and a policy rather than a
+ * promise: `med_checkoffs` lets a helper insert, and delete only where
+ * `taken_by = auth.uid()`. A tick is a fact, not a claim — the database stamps
+ * `taken_by` from the session, so a helper cannot attribute a dose to anybody
+ * else, and there is no update path at all.
+ *
+ * The undo is its own capability because it is its own policy: a helper may
+ * delete their own tick and no one else's, which is exactly what a mistake
+ * looks like ("I ticked the 8am by accident"). The family's ticks are not the
+ * helper's to take back.
  */
 const VISITING_HELPER_CAPABILITIES: Capabilities = {
   ...NO_CAPABILITIES,
@@ -212,8 +240,12 @@ const VISITING_HELPER_CAPABILITIES: Capabilities = {
   // three profile tables have no RLS policy for this role, so the screen and the
   // database agree.
   canSeeCareDetails: false,
+  // The med list they are asked to check off, and nothing else about the
+  // person's care: `medications` and `medication_times` have a select policy for
+  // this role and no write policy.
   canSeeMeds: true,
   canCheckOffMeds: true,
+  canUndoCheckOff: true,
   // No roster: `circle_members_select_member` shows a helper their own row only.
   canSeeRoster: false,
   // No documents and no money: power of attorney, insurance cards and the

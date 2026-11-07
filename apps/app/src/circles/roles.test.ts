@@ -31,6 +31,7 @@ const EXPECTED: Readonly<Record<CircleRole, readonly Capability[]>> = {
     'canSeeMeds',
     'canEditMeds',
     'canCheckOffMeds',
+    'canUndoCheckOff',
     'canManageCalendar',
     'canPostUpdates',
     'canSeeDocuments',
@@ -49,6 +50,7 @@ const EXPECTED: Readonly<Record<CircleRole, readonly Capability[]>> = {
     'canSeeMeds',
     'canEditMeds',
     'canCheckOffMeds',
+    'canUndoCheckOff',
     'canManageCalendar',
     'canPostUpdates',
     'canSeeDocuments',
@@ -64,7 +66,7 @@ const EXPECTED: Readonly<Record<CircleRole, readonly Capability[]>> = {
     'canSeeDocuments',
     'canSeeRoster',
   ],
-  visiting_helper: ['canSeeCareRecipient', 'canSeeMeds', 'canCheckOffMeds'],
+  visiting_helper: ['canSeeCareRecipient', 'canSeeMeds', 'canCheckOffMeds', 'canUndoCheckOff'],
 };
 
 function capabilitiesOf(role: CircleRole): Capabilities {
@@ -132,6 +134,46 @@ describe('the capability map', () => {
     expect(capabilitiesOf('visiting_helper').canSeeDocuments).toBe(false);
     expect(capabilitiesOf('visiting_helper').canSeeCosts).toBe(false);
     expect(capabilitiesOf('visiting_helper').canReadAuditLog).toBe(false);
+  });
+
+  it('gives the tick and the undo to exactly the three roles that may write a dose', () => {
+    // The database's `med_checkoffs` policies, in one line: owner, family member
+    // and visiting helper may insert; the helper may delete only their own row.
+    // View-only writes nothing at all — it may not tick a dose even by accident.
+    for (const role of ['owner', 'family_member', 'visiting_helper'] as const) {
+      expect(capabilitiesOf(role).canCheckOffMeds, `${role} should tick a dose`).toBe(true);
+      expect(capabilitiesOf(role).canUndoCheckOff, `${role} should undo a tick`).toBe(true);
+    }
+
+    expect(capabilitiesOf('view_only').canCheckOffMeds).toBe(false);
+    expect(capabilitiesOf('view_only').canUndoCheckOff).toBe(false);
+  });
+
+  it('gives editing medications to the care team alone', () => {
+    expect(capabilitiesOf('owner').canEditMeds).toBe(true);
+    expect(capabilitiesOf('family_member').canEditMeds).toBe(true);
+    // A helper ticks what the family entered; they do not decide what is on the
+    // list. View-only changes nothing.
+    expect(capabilitiesOf('visiting_helper').canEditMeds).toBe(false);
+    expect(capabilitiesOf('view_only').canEditMeds).toBe(false);
+
+    // …and every role in the circle reads the list, a helper included, because
+    // a helper cannot tick a dose they cannot see.
+    for (const role of ALL_ROLES) {
+      expect(capabilitiesOf(role).canSeeMeds, `${role} should see the med list`).toBe(true);
+    }
+  });
+
+  it('never gates the check-off on plan state', () => {
+    // The owner settled on 2026-11-06 that a circle which lapses to Free keeps
+    // every free feature, med check-offs included. The map cannot express a plan
+    // state at all — `capabilitiesFor` takes a role and nothing else — so there
+    // is no way for a lapsed circle to lose the tick on screen.
+    // `tests/rls/meds.rls.test.ts` proves the same thing in the database: a tick
+    // still lands after the circle's plan is cancelled.
+    expect(capabilitiesFor).toHaveLength(1);
+    expect(capabilitiesFor('visiting_helper').canCheckOffMeds).toBe(true);
+    expect(capabilitiesFor('owner').canCheckOffMeds).toBe(true);
   });
 
   it('keeps the three owner-only powers away from a family member', () => {
@@ -202,6 +244,7 @@ describe('plain-language names', () => {
       'See who you’re caring for',
       'See the medication list',
       'Check off medications and visits',
+      'Undo a check-off you made',
     ]);
 
     expect(capabilitySummary(null)).toEqual([]);
