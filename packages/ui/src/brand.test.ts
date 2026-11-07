@@ -384,7 +384,7 @@ describe('brand assets', () => {
     // and the name has to sit below the mark rather than beside it.
     let white = 0;
     let lowestWhiteRow = 0;
-    let highestTealRow = SPLASH.size;
+    let highestTealRow: number = SPLASH.size;
 
     for (let y = 0; y < splash.height; y += 1) {
       for (let x = 0; x < splash.width; x += 1) {
