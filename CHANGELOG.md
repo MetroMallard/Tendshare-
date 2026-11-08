@@ -8,6 +8,34 @@ All notable changes to Tendshare are recorded here. The format follows
 
 ### Added
 
+- **Task 8, part two — the medication screens.** The Meds tab, the Today card, the
+  add/edit sheet, the change-history sheet and a hidden `/meds-preview` for review.
+  - **Today's doses first**, grouped under the clock time the family typed ("8:00 am",
+    "1:00 pm"), each row the medicine, strength and form and instructions exactly as
+    typed, with one large tick. A ticked dose says **who and when** in plain words
+    ("Sara, 8:12 am") — never a bare checkmark — and the undo is a second tap behind a
+    ConfirmSheet, because it deletes the row.
+  - **The rest of the list** under it: every medicine, its times as pills, an Edit
+    affordance, and — when `refill_due_on` is inside `refill_reminder_days` — one calm
+    line ("Refill due 12 Nov") plus a soft count at the top. Never red, never a modal.
+  - **Roles come from the capability map only.** A visiting helper gets the list and the
+    tick and nothing else; view-only sees everything including history and ticks
+    nothing; owner and family member get everything. Which roles may read
+    `medication_history()` is decided by `canReadMedHistory()`, a tested function over
+    capabilities, not a role string.
+  - **Optimistic writes with a visible rollback**: a tick paints immediately ("You,
+    8:12 am") and is put back with one calm sentence if the database refuses; a failed
+    save restores the list *and* reopens the sheet with every word still in it.
+  - **Archive, never delete**: the sheet's delete is `archived_at` behind a ConfirmSheet,
+    and it says the history stays.
+  - **Every state**: row-shaped loading skeletons, empty, error with retry, offline with
+    the cached list and ticking paused, and a lapsed plan read-only for the paid extras
+    only — ticking is never gated, per the owner's 2026-11-06 decision.
+- **Migration `20261108120000_medication_history_dose_time.sql`** — forward-only and
+  additive: `medication_history()` now also returns `dose_date` and `dose_time`, so the
+  history can say "Priya ticked the 1:00 pm dose, 7 Nov" instead of "a dose". Same
+  roles, same refusals, same privileges; no table or policy changed.
+
 - **Task 8, part one — the medication schema, RLS, audit trail and capability map**
   (no screens; part two is the UI). The database is now the whole check-off contract.
   - **Three tables, migration `20261107120000_medications.sql`** (plus
