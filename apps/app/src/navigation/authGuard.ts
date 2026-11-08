@@ -12,10 +12,14 @@ export const SIGN_IN_PATH = '/sign-in';
 export const HOME_PATH = '/';
 
 /**
- * Hidden routes: the component gallery, the auth state preview, the onboarding
- * state preview, the circle state preview and the profile state preview. They are not the app shell, hold no care data, and
- * are how the owner and QA look at every state on purpose. They stay reachable
- * in any session state.
+ * Hidden routes: the component gallery and every `*-preview` state screen. They
+ * are not the app shell, hold no care data, and are how the owner and QA look at
+ * every state on purpose. They stay reachable in any session state.
+ *
+ * Every `app/*-preview.tsx` file must be listed here — a preview that is not
+ * listed redirects a signed-out visitor to the sign-in form, so the screen
+ * nobody can reach is the one that never got checked. A test scans the route
+ * folder and fails on any preview missing from this list.
  */
 export const HIDDEN_ROUTES: readonly string[] = [
   'gallery',
@@ -23,6 +27,7 @@ export const HIDDEN_ROUTES: readonly string[] = [
   'onboarding-preview',
   'circles-preview',
   'profile-preview',
+  'meds-preview',
 ];
 
 export interface GuardInput {

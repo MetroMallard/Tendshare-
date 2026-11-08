@@ -6,9 +6,13 @@
  * checked below across every route in the app, because a redirect bug is a
  * person locked out of their parent's medication list.
  */
+import { readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
 import { describe, expect, it } from 'vitest';
 
 import {
+  HIDDEN_ROUTES,
   HOME_PATH,
   SIGN_IN_PATH,
   isAuthRoute,
@@ -19,6 +23,7 @@ import {
 
 const SHELL = ['(tabs)', 'index'] as const;
 const PROFILE_PREVIEW = ['profile-preview'] as const;
+const MEDS_PREVIEW = ['meds-preview'] as const;
 const ROOT: readonly string[] = [];
 const SIGN_IN = ['(auth)', 'sign-in'] as const;
 const VERIFY = ['(auth)', 'verify'] as const;
@@ -152,7 +157,27 @@ describe('route classification', () => {
     expect(isHiddenRoute(GALLERY)).toBe(true);
     expect(isHiddenRoute(PREVIEW)).toBe(true);
     expect(isHiddenRoute(PROFILE_PREVIEW)).toBe(true);
+    expect(isHiddenRoute(MEDS_PREVIEW)).toBe(true);
     expect(isHiddenRoute(SHELL)).toBe(false);
     expect(isHiddenRoute(ROOT)).toBe(false);
+  });
+
+  /**
+   * The scan that makes the rule above impossible to forget.
+   *
+   * `/meds-preview` shipped in Task 8 without being added to `HIDDEN_ROUTES`, so
+   * the guard sent every visitor to the sign-in form and the screen could not be
+   * opened at all — the one route nobody could look at was the one that was
+   * never checked. Reading the route folder is what stops the next task from
+   * repeating it.
+   */
+  it('lists every *-preview route that exists in the app folder', () => {
+    const appDir = fileURLToPath(new URL('../../app/', import.meta.url));
+    const previews = readdirSync(appDir, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith('-preview.tsx'))
+      .map((entry) => entry.name.replace(/\.tsx$/, ''));
+
+    expect(previews.length).toBeGreaterThan(0);
+    expect(previews.filter((route) => !HIDDEN_ROUTES.includes(route))).toEqual([]);
   });
 });
