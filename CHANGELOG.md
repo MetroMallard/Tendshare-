@@ -8,6 +8,52 @@ All notable changes to Tendshare are recorded here. The format follows
 
 ### Added
 
+- **Task 8, part one — the medication schema, RLS, audit trail and capability map**
+  (no screens; part two is the UI). The database is now the whole check-off contract.
+  - **Three tables, migration `20261107120000_medications.sql`** (plus
+    `20261107120100_medications_audit_fields.sql`, a one-line correction the hosted suite
+    caught in the same PR). `medications` holds exactly what the family typed — name,
+    strength ("500 mg"), form, instructions, start/end/refill dates — and **no
+    dose-amount, quantity or dosage column anywhere**: there is no arithmetic here to
+    turn into advice. `medication_times` holds the clock times they typed, unique per
+    medication. `med_checkoffs` is the only row a dose ever creates, keyed by
+    (medication, date, time) so one slot can only be ticked once; doses themselves are
+    derived from the schedule, never stored, so nothing has to run at midnight.
+  - **No update path on a tick.** `med_checkoffs` has no UPDATE policy and no UPDATE
+    privilege. A mistake is undone by deleting the row and ticking again, so
+    `dose.unticked` and a fresh `dose.ticked` both reach the trail instead of one
+    silently rewriting the other.
+  - **A tick is a fact, not a claim.** A `before insert` trigger stamps `taken_by`,
+    `taken_at` and `circle_id` from the session and the medication, so a visiting helper
+    cannot attribute a dose to somebody else or backdate it — and a caller outside the
+    circle is refused.
+  - **RLS enabled and forced on all three tables.** Owner and family member read and
+    write the list; view-only reads it and writes nothing; a visiting helper reads
+    `medications` and `medication_times` (they cannot tick a dose they cannot see),
+    inserts a check-off, reads check-offs so a second tap is not a unique-constraint
+    error, and may **delete only a row where `taken_by = auth.uid()`**. No policy on any
+    of these tables consults `circle_is_writable()`, so a circle that lapsed to Free keeps
+    editing its med list and keeps ticking doses.
+  - **Audit rows in the same PR.** Medication and time inserts, edits, soft-archives and
+    deletes write `audit_log` rows from a security-definer trigger, carrying field *names*
+    and the medication id — `{"fields":["strength"]}`, never "500 mg". Ticks write
+    `dose.ticked` and undos write `dose.unticked`, carrying medication id, dose date and
+    dose time. `audit_log` stays append-only and unreadable to a helper.
+  - **One narrow read path for the change history:** `medication_history(circle,
+    medication?, limit?)` returns field names, timestamps, the event type and the actor's
+    display name for the caller's circle only. It refuses a visiting helper and refuses a
+    medication id from another circle rather than answering an empty list.
+  - **Capability map:** `canUndoCheckOff` added beside the existing `canSeeMeds`,
+    `canEditMeds` and `canCheckOffMeds` — tick and undo for owner, family member and
+    visiting helper, never view-only — with the longhand expectation table in
+    `roles.test.ts` extended so a future edit has to change the test on purpose.
+  - **Proven against the hosted project:** `tests/rls/meds.rls.test.ts` adds 28 tests
+    (5 files / 116 tests total, up from 4 files / 88). They cover the helper's tick with a
+    lying request body, the helper's refused edits and refused delete of somebody else's
+    tick, the undo-and-retick pair with both audit rows, view-only's refused tick, the
+    audit payload carrying field names and no medicine name, cross-circle isolation, and
+    a tick still landing after the circle's plan is cancelled.
+
 - **App icon, splash screen and web icons from the owner's chosen mark** (#9).
   - The mark is one hand-authored vector, `apps/app/assets/brand/tendshare-mark.svg` —
     two heads on one continuous heart, teal `#4CC0B9` on navy `#10456B`. No raster
